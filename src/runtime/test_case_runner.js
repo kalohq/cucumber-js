@@ -54,7 +54,7 @@ export default class TestCaseRunner {
       }
       steps.push(data)
     })
-    this.beforeHookDefinitions.forEach(definition => {
+    this.afterHookDefinitions.forEach(definition => {
       const actionLocation = { uri: definition.uri, line: definition.line }
       steps.push({ actionLocation })
     })
