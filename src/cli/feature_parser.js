@@ -1,5 +1,5 @@
-import Feature from '../models/feature'
 import Gherkin from 'gherkin'
+import TestCase from '../models/test_case'
 
 const gherkinCompiler = new Gherkin.Compiler()
 const gherkinParser = new Gherkin.Parser()
@@ -14,13 +14,9 @@ export default class Parser {
       throw error
     }
 
-    if (gherkinDocument.feature) {
-      return new Feature({
-        gherkinData: gherkinDocument.feature,
-        gherkinPickles: gherkinCompiler.compile(gherkinDocument, uri),
-        scenarioFilter,
-        uri
-      })
-    }
+    return gherkinCompiler
+      .compile(gherkinDocument)
+      .filter(pickle => scenarioFilter.matches(pickle))
+      .map(pickle => new TestCase({ pickle, uri }))
   }
 }

@@ -8,17 +8,22 @@ export default class SummaryFormatter extends Formatter {
     super(options)
     options.eventBroadcaster
       .on('gherkin-document', this.onGherkinDocument.bind(this))
+      .on('pickle', this.onGherkinDocument.bind(this))
       .on('test-case-started', this.onTestCaseStarted.bind(this))
       .on('test-step-finished', this.onTestStepFinished.bind(this))
       .on('test-case-finished', this.onTestCaseFinished.bind(this))
       .on('test-run-finished', this.onTestRunFinished.bind(this))
     this.gherkinDocuments = new Map()
+    this.pickles = new Map()
     this.testCases = new Map()
-    this.issues = []
   }
 
   onGherkinDocument({ document, uri }) {
     this.gherkinDocuments.set(uri, document)
+  }
+
+  onPickle({ pickle, uri }) {
+    this.pickles.set(uri + ':' + pickle.location[0].line, pickle)
   }
 
   onTestCaseStarted({ testCase }) {
@@ -33,47 +38,45 @@ export default class SummaryFormatter extends Formatter {
     this.testCases.get(testCase).result = result
   }
 
-  onTestRunFinished(featuresResult) {
-    const failures = featuresResult.scenarioResults.filter(function(
-      scenarioResult
-    ) {
-      return _.includes(
-        [Status.AMBIGUOUS, Status.FAILED],
-        scenarioResult.status
-      )
+  onTestRunFinished() {
+    const failures = []
+    const warnings = []
+    this.testCases.forEach(({ result, stepResults }, testCase) => {
+      if (_.includes([Status.AMBIGUOUS, Status.FAILED], result.status)) {
+        failures.push({ testCase, stepResults })
+      } else if (
+        _.includes([Status.PENDING, Status.UNDEFINED], result.status)
+      ) {
+        warnings.push({ testCase, stepResults })
+      }
     })
     if (failures.length > 0) {
-      this.logIssues({ scenarioResults: failures, title: 'Failures' })
+      this.logIssues({ issues: failures, title: 'Failures' })
     }
-    const warnings = featuresResult.scenarioResults.filter(function(
-      scenarioResult
-    ) {
-      return _.includes(
-        [Status.PENDING, Status.UNDEFINED],
-        scenarioResult.status
-      )
-    })
     if (warnings.length > 0) {
-      this.logIssues({ scenarioResults: warnings, title: 'Warnings' })
+      this.logIssues({ issues: warnings, title: 'Warnings' })
     }
     this.log(
       formatSummary({
         colorFns: this.colorFns,
-        featuresResult
+        testCases: this.testCases
       })
     )
   }
 
-  logIssues({ scenarioResults, title }) {
+  logIssues({ issues, title }) {
     this.log(title + ':\n\n')
-    scenarioResults.forEach((scenarioResult, index) => {
+    issues.forEach(({ stepResults, testCase }, index) => {
       this.log(
         formatIssue({
           colorFns: this.colorFns,
           cwd: this.cwd,
+          gherkinDocument: this.gherkinDocuments.get(testCase.uri),
           number: index + 1,
+          pickle: this.pickles.get(testCase.uri + ':' + testCase.line),
           snippetBuilder: this.snippetBuilder,
-          scenarioResult
+          stepResults,
+          testCase
         })
       )
     })

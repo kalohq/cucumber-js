@@ -36,7 +36,7 @@ export default class Cli {
           streamsToClose.push(stream)
         }
         const typeOptions = _.assign(
-          { log: ::stream.write, stream, supportCodeLibrary },
+          { eventBroadcaster, log: ::stream.write, stream, supportCodeLibrary },
           formatOptions
         )
         return FormatterBuilder.build(type, typeOptions)
@@ -76,17 +76,16 @@ export default class Cli {
     const scenarioFilter = new ScenarioFilter(
       configuration.scenarioFilterOptions
     )
-    const [features, { cleanup, formatters }] = await Promise.all([
+    const [testCases, cleanup] = await Promise.all([
       getFeatures({ featurePaths: configuration.featurePaths, scenarioFilter }),
-      this.getFormatters({
+      this.initializeFormatters({
         formatOptions: configuration.formatOptions,
         formats: configuration.formats,
         supportCodeLibrary
       })
     ])
     const runtime = new Runtime({
-      features,
-      listeners: formatters,
+      testCases,
       options: configuration.runtimeOptions,
       supportCodeLibrary
     })
