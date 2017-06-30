@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { validateInstall } from './install_validator'
-import { getExpandedArgv, getFeatures } from './helpers'
+import { getExpandedArgv, getTestCases } from './helpers'
 import ConfigurationBuilder from './configuration_builder'
 import FormatterBuilder from '../formatter/builder'
 import fs from 'mz/fs'
@@ -11,6 +11,7 @@ import ScenarioFilter from '../scenario_filter'
 import SupportCodeFns from '../support_code_fns'
 import SupportCodeLibraryBuilder from '../support_code_library/builder'
 import * as I18n from './i18n'
+import EventEmitter from 'events'
 
 export default class Cli {
   constructor({ argv, cwd, stdout }) {
@@ -24,7 +25,12 @@ export default class Cli {
     return await ConfigurationBuilder.build({ argv: fullArgv, cwd: this.cwd })
   }
 
-  async getFormatters({ formatOptions, formats, supportCodeLibrary }) {
+  async initializeFormatters({
+    eventManager,
+    formatOptions,
+    formats,
+    supportCodeLibrary
+  }) {
     const streamsToClose = []
     const formatters = await Promise.map(
       formats,
@@ -36,7 +42,7 @@ export default class Cli {
           streamsToClose.push(stream)
         }
         const typeOptions = _.assign(
-          { eventBroadcaster, log: ::stream.write, stream, supportCodeLibrary },
+          { eventManager, log: ::stream.write, stream, supportCodeLibrary },
           formatOptions
         )
         return FormatterBuilder.build(type, typeOptions)
@@ -76,18 +82,25 @@ export default class Cli {
     const scenarioFilter = new ScenarioFilter(
       configuration.scenarioFilterOptions
     )
+    const eventBroadcaster = new EventEmitter()
     const [testCases, cleanup] = await Promise.all([
-      getFeatures({ featurePaths: configuration.featurePaths, scenarioFilter }),
+      getTestCases({
+        eventBroadcaster,
+        featurePaths: configuration.featurePaths,
+        scenarioFilter
+      }),
       this.initializeFormatters({
+        eventBroadcaster,
         formatOptions: configuration.formatOptions,
         formats: configuration.formats,
         supportCodeLibrary
       })
     ])
     const runtime = new Runtime({
-      testCases,
+      eventBroadcaster,
       options: configuration.runtimeOptions,
-      supportCodeLibrary
+      supportCodeLibrary,
+      testCases
     })
     const result = await runtime.start()
     await cleanup()

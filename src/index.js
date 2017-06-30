@@ -2,7 +2,6 @@ import SupportCodeFns from './support_code_fns'
 import * as formatterHelpers from './formatter/helpers'
 
 export { default as Cli } from './cli'
-export { default as FeatureParser } from './cli/feature_parser'
 export { default as Formatter } from './formatter'
 export { default as FormatterBuilder } from './formatter/builder'
 export { default as JsonFormatter } from './formatter/json_formatter'

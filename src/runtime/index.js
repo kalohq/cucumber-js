@@ -1,43 +1,45 @@
-import EventBroadcaster from './event_broadcaster'
-import FeaturesRunner from './features_runner'
+import Status from '../status'
 import StackTraceFilter from './stack_trace_filter'
+import TestCaseRunner from './test_case_runner'
 
 export default class Runtime {
   // options - {dryRun, failFast, filterStacktraces, strict}
-  constructor({ features, listeners, options, supportCodeLibrary }) {
-    this.features = features || []
-    this.listeners = listeners || []
+  constructor({ eventBroadcaster, options, supportCodeLibrary, testCases }) {
+    this.eventBroadcaster = eventBroadcaster
     this.options = options || {}
-    this.supportCodeLibrary = supportCodeLibrary
     this.stackTraceFilter = new StackTraceFilter()
+    this.supportCodeLibrary = supportCodeLibrary
+    this.testCases = testCases || []
+    this.eventBroadcaster.on('test-case-finished', ::this.onTestCaseFinished)
+    this.success = true
+  }
+
+  onTestCaseFinished({ result }) {
+    if (result.status !== Status.PASSED) {
+      this.success = false
+    }
+  }
+
+  async runTestCase(testCase) {
+    const testCaseRunner = new TestCaseRunner({
+      eventBroadcaster: this.eventBroadcaster,
+      options: this.options,
+      supportCodeLibrary: this.supportCodeLibrary,
+      testCase
+    })
+    await testCaseRunner.run()
   }
 
   async start() {
-    const eventBroadcaster = new EventBroadcaster({
-      listenerDefaultTimeout: this.supportCodeLibrary.defaultTimeout,
-      listeners: this.listeners.concat(this.supportCodeLibrary.listeners)
-    })
-    const featuresRunner = new FeaturesRunner({
-      eventBroadcaster,
-      features: this.features,
-      options: this.options,
-      supportCodeLibrary: this.supportCodeLibrary
-    })
-
     if (this.options.filterStacktraces) {
       this.stackTraceFilter.filter()
     }
-
-    const result = await featuresRunner.run()
-
+    this.eventBroadcaster.emit('test-run-started')
+    await Promise.each(this.testCases, ::this.runTestCase)
+    this.eventBroadcaster.emit('test-run-finished')
     if (this.options.filterStacktraces) {
       this.stackTraceFilter.unfilter()
     }
-
-    return result
-  }
-
-  attachListener(listener) {
-    this.listeners.push(listener)
+    return this.success
   }
 }

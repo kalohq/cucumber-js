@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import ArgvParser from './argv_parser'
 import fs from 'mz/fs'
-import FeatureParser from './feature_parser'
+import Gherkin from 'gherkin'
 import ProfileLoader from './profile_loader'
 import Promise from 'bluebird'
 
@@ -15,13 +15,26 @@ export async function getExpandedArgv({ argv, cwd }) {
   return fullArgv
 }
 
-export async function getFeatures({ featurePaths, scenarioFilter }) {
-  const features = await Promise.map(featurePaths, async featurePath => {
+export async function getTestCases({
+  eventBroadcaster,
+  featurePaths,
+  scenarioFilter
+}) {
+  const result = []
+  await Promise.map(featurePaths, async featurePath => {
     const source = await fs.readFile(featurePath, 'utf8')
-    return FeatureParser.parse({ scenarioFilter, source, uri: featurePath })
+    const events = Gherkin.generateEvents(source, featurePath)
+    eventBroadcaster.on('pickle', ({ pickle, uri }) => {
+      if (scenarioFilter.matches(pickle)) {
+        eventBroadcaster.emit('pickle-accepted', { pickle, uri })
+        result.push({ pickle, uri })
+      } else {
+        eventBroadcaster.emit('pickle-rejected', { pickle, uri })
+      }
+    })
+    events.forEach(event => {
+      eventBroadcaster.emit(event.type, event)
+    })
   })
-  return _.chain(features)
-    .compact()
-    .filter(feature => feature.scenarios.length > 0)
-    .value()
+  return result
 }

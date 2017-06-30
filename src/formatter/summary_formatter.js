@@ -8,7 +8,7 @@ export default class SummaryFormatter extends Formatter {
     super(options)
     options.eventBroadcaster
       .on('gherkin-document', this.onGherkinDocument.bind(this))
-      .on('pickle', this.onGherkinDocument.bind(this))
+      .on('pickle-accepted', this.onGherkinDocument.bind(this))
       .on('test-case-started', this.onTestCaseStarted.bind(this))
       .on('test-step-finished', this.onTestStepFinished.bind(this))
       .on('test-case-finished', this.onTestCaseFinished.bind(this))
