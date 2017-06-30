@@ -33,8 +33,6 @@ export const addTransform = proxySupportCode('addTransform')
 export const defineParameterType = proxySupportCode('defineParameterType')
 export const After = proxySupportCode('After')
 export const Before = proxySupportCode('Before')
-export const registerHandler = proxySupportCode('registerHandler')
-export const registerListener = proxySupportCode('registerListener')
 export const setDefaultTimeout = proxySupportCode('setDefaultTimeout')
 export const setDefinitionFunctionWrapper = proxySupportCode(
   'setDefinitionFunctionWrapper'

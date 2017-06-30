@@ -1,5 +1,4 @@
 import util from 'util'
-import _ from 'lodash'
 import { ParameterType } from 'cucumber-expressions'
 import { formatLocation } from '../formatter/helpers'
 import HookDefinition from '../models/hook_definition'
@@ -57,29 +56,6 @@ function getDefinitionLineAndUri() {
   const fileName = stackframe.getFileName()
   const uri = fileName ? fileName.replace(/\//g, path.sep) : 'unknown'
   return { line, uri }
-}
-
-export function registerHandler(cwd, collection) {
-  return (eventName, options, code) => {
-    if (typeof options === 'function') {
-      code = options
-      options = {}
-    }
-    const { line, uri } = getDefinitionLineAndUri()
-    validateArguments({
-      args: { code, eventName, options },
-      fnName: 'registerHandler',
-      relativeUri: formatLocation(cwd, { line, uri })
-    })
-    const listener = _.assign(
-      {
-        [`handle${eventName}`]: code,
-        relativeUri: formatLocation(cwd, { line, uri })
-      },
-      options
-    )
-    collection.push(listener)
-  }
 }
 
 export function addTransform(parameterTypeRegistry) {

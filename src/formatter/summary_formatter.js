@@ -4,7 +4,36 @@ import Formatter from './'
 import Status from '../status'
 
 export default class SummaryFormatter extends Formatter {
-  handleFeaturesResult(featuresResult) {
+  constructor(options) {
+    super(options)
+    options.eventBroadcaster
+      .on('gherkin-document', this.onGherkinDocument.bind(this))
+      .on('test-case-started', this.onTestCaseStarted.bind(this))
+      .on('test-step-finished', this.onTestStepFinished.bind(this))
+      .on('test-case-finished', this.onTestCaseFinished.bind(this))
+      .on('test-run-finished', this.onTestRunFinished.bind(this))
+    this.gherkinDocuments = new Map()
+    this.testCases = new Map()
+    this.issues = []
+  }
+
+  onGherkinDocument({ document, uri }) {
+    this.gherkinDocuments.set(uri, document)
+  }
+
+  onTestCaseStarted({ testCase }) {
+    this.testCases.set(testCase, { stepResults: [] })
+  }
+
+  onTestStepFinished({ testCase, result }) {
+    this.testCases.get(testCase).stepResults.push(result)
+  }
+
+  onTestCaseFinished({ testCase, result }) {
+    this.testCases.get(testCase).result = result
+  }
+
+  onTestRunFinished(featuresResult) {
     const failures = featuresResult.scenarioResults.filter(function(
       scenarioResult
     ) {

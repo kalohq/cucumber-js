@@ -1,4 +1,3 @@
-import Event from './event'
 import FeaturesResult from '../models/features_result'
 import Promise from 'bluebird'
 import ScenarioResult from '../models/scenario_result'
@@ -6,8 +5,8 @@ import ScenarioRunner from './scenario_runner'
 import Status from '../status'
 
 export default class FeaturesRunner {
-  constructor({ eventBroadcaster, features, options, supportCodeLibrary }) {
-    this.eventBroadcaster = eventBroadcaster
+  constructor({ eventManager, features, options, supportCodeLibrary }) {
+    this.eventManager = eventManager
     this.features = features
     this.options = options
     this.supportCodeLibrary = supportCodeLibrary
@@ -15,32 +14,16 @@ export default class FeaturesRunner {
   }
 
   async run() {
-    const event = new Event({
-      data: this.features,
-      name: Event.FEATURES_EVENT_NAME
-    })
-    await this.eventBroadcaster.broadcastAroundEvent(event, async () => {
-      await Promise.each(this.features, ::this.runFeature)
-      await this.broadcastFeaturesResult()
-    })
+    this.eventManager.emit('test-run-started')
+    await Promise.each(this.features, ::this.runFeature)
+    this.eventManager.emit('test-run-finished')
     return this.featuresResult.success
   }
 
-  async broadcastFeaturesResult() {
-    const event = new Event({
-      data: this.featuresResult,
-      name: Event.FEATURES_RESULT_EVENT_NAME
-    })
-    await this.eventBroadcaster.broadcastEvent(event)
-  }
-
   async runFeature(feature) {
-    const event = new Event({ data: feature, name: Event.FEATURE_EVENT_NAME })
-    await this.eventBroadcaster.broadcastAroundEvent(event, async () => {
-      await Promise.each(feature.scenarios, async scenario => {
-        const scenarioResult = await this.runScenario(scenario)
-        this.featuresResult.witnessScenarioResult(scenarioResult)
-      })
+    await Promise.each(feature.scenarios, async scenario => {
+      const scenarioResult = await this.runScenario(scenario)
+      this.featuresResult.witnessScenarioResult(scenarioResult)
     })
   }
 

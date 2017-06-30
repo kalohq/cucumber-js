@@ -9,7 +9,6 @@ function build({ cwd, fns }) {
     afterHookDefinitions: [],
     beforeHookDefinitions: [],
     defaultTimeout: 5000,
-    listeners: [],
     stepDefinitions: [],
     parameterTypeRegistry: TransformLookupBuilder.build(),
     World({ attach, parameters }) {
@@ -26,10 +25,6 @@ function build({ cwd, fns }) {
     After: helpers.defineHook(cwd, options.afterHookDefinitions),
     Before: helpers.defineHook(cwd, options.beforeHookDefinitions),
     defineStep: helpers.defineStep(cwd, options.stepDefinitions),
-    registerHandler: helpers.registerHandler(cwd, options.listeners),
-    registerListener(listener) {
-      options.listeners.push(listener)
-    },
     setDefaultTimeout(milliseconds) {
       options.defaultTimeout = milliseconds
     },

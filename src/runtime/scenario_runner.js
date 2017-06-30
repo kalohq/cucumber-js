@@ -1,5 +1,4 @@
 import AttachmentManager from './attachment_manager'
-import Event from './event'
 import Hook from '../models/hook'
 import Promise from 'bluebird'
 import ScenarioResult from '../models/scenario_result'
@@ -8,9 +7,9 @@ import StepResult from '../models/step_result'
 import StepRunner from './step_runner'
 
 export default class ScenarioRunner {
-  constructor({ eventBroadcaster, options, scenario, supportCodeLibrary }) {
+  constructor({ eventManager, options, scenario, supportCodeLibrary }) {
     this.attachmentManager = new AttachmentManager()
-    this.eventBroadcaster = eventBroadcaster
+    this.eventManager = eventManager
     this.options = options
     this.scenario = scenario
     this.supportCodeLibrary = supportCodeLibrary
@@ -19,23 +18,6 @@ export default class ScenarioRunner {
       attach: ::this.attachmentManager.create,
       parameters: options.worldParameters
     })
-  }
-
-  async broadcastScenarioResult() {
-    const event = new Event({
-      data: this.scenarioResult,
-      name: Event.SCENARIO_RESULT_EVENT_NAME
-    })
-    await this.eventBroadcaster.broadcastEvent(event)
-  }
-
-  async broadcastStepResult(stepResult) {
-    this.scenarioResult.witnessStepResult(stepResult)
-    const event = new Event({
-      data: stepResult,
-      name: Event.STEP_RESULT_EVENT_NAME
-    })
-    await this.eventBroadcaster.broadcastEvent(event)
   }
 
   invokeStep(step, stepDefinition) {
@@ -55,31 +37,34 @@ export default class ScenarioRunner {
   }
 
   async run() {
-    const event = new Event({
-      data: this.scenario,
-      name: Event.SCENARIO_EVENT_NAME
+    const beforeHookDefinitions = this.supportCodeLibrary.beforeHookDefinitions.filter(
+      hookDefinition => {
+        return hookDefinition.appliesToScenario(this.scenario)
+      }
+    )
+    const afterHookDefinitions = this.supportCodeLibrary.afterHookDefinitions.filter(
+      hookDefinition => {
+        return hookDefinition.appliesToScenario(this.scenario)
+      }
+    )
+    this.eventManager.emit('test-case-prepared', {
+      steps: beforeHookDefinitions.concat(
+        this.scenario.steps,
+        afterHookDefinitions
+      )
     })
-    await this.eventBroadcaster.broadcastAroundEvent(event, async () => {
-      await this.runBeforeHooks()
-      await this.runSteps()
-      await this.runAfterHooks()
-      await this.broadcastScenarioResult()
-    })
-    return this.scenarioResult
-  }
-
-  async runAfterHooks() {
+    this.eventManager.emit('test-case-started')
     await this.runHooks({
-      hookDefinitions: this.supportCodeLibrary.afterHookDefinitions,
+      hookDefinitions: beforeHookDefinitions,
       hookKeyword: Hook.AFTER_STEP_KEYWORD
     })
-  }
-
-  async runBeforeHooks() {
+    await this.runSteps()
     await this.runHooks({
-      hookDefinitions: this.supportCodeLibrary.beforeHookDefinitions,
-      hookKeyword: Hook.BEFORE_STEP_KEYWORD
+      hookDefinitions: afterHookDefinitions,
+      hookKeyword: Hook.AFTER_STEP_KEYWORD
     })
+    this.eventManager.emit('test-case-finished')
+    return this.scenarioResult
   }
 
   async runHook(hook, hookDefinition) {
@@ -96,15 +81,11 @@ export default class ScenarioRunner {
 
   async runHooks({ hookDefinitions, hookKeyword }) {
     await Promise.each(hookDefinitions, async hookDefinition => {
-      if (!hookDefinition.appliesToScenario(this.scenario)) {
-        return
-      }
       const hook = new Hook({ keyword: hookKeyword, scenario: this.scenario })
-      const event = new Event({ data: hook, name: Event.STEP_EVENT_NAME })
-      await this.eventBroadcaster.broadcastAroundEvent(event, async () => {
-        const stepResult = await this.runHook(hook, hookDefinition)
-        await this.broadcastStepResult(stepResult)
-      })
+      this.eventManager.emit('test-step-started')
+      const stepResult = await this.runHook(hook, hookDefinition)
+      this.eventManager.emit('test-step-finished')
+      this.scenarioResult.witnessStepResult(stepResult)
     })
   }
 
@@ -141,11 +122,10 @@ export default class ScenarioRunner {
 
   async runSteps() {
     await Promise.each(this.scenario.steps, async step => {
-      const event = new Event({ data: step, name: Event.STEP_EVENT_NAME })
-      await this.eventBroadcaster.broadcastAroundEvent(event, async () => {
-        const stepResult = await this.runStep(step)
-        await this.broadcastStepResult(stepResult)
-      })
+      this.eventManager.emit('test-step-started')
+      const stepResult = await this.runStep(step)
+      this.eventManager.emit('test-step-started', { result: stepResult })
+      this.scenarioResult.witnessStepResult(stepResult)
     })
   }
 }

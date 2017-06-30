@@ -46,18 +46,6 @@ const validations = {
     _.assign({ identifier: 'second argument' }, optionsValidation),
     optionsTimeoutValidation,
     _.assign({ identifier: 'third argument' }, fnValidation)
-  ],
-  registerHandler: [
-    {
-      identifier: 'first argument',
-      expectedType: 'string',
-      predicate({ eventName }) {
-        return _.isString(eventName)
-      }
-    },
-    _.assign({ identifier: 'second argument' }, optionsValidation),
-    optionsTimeoutValidation,
-    _.assign({ identifier: 'third argument' }, fnValidation)
   ]
 }
 
