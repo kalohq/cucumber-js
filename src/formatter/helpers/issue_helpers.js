@@ -5,8 +5,6 @@ import indentString from 'indent-string'
 import Status from '../../status'
 import figures from 'figures'
 import Table from 'cli-table'
-import DataTable from '../../models/step_arguments/data_table'
-import DocString from '../../models/step_arguments/doc_string'
 
 const CHARACTERS = {
   [Status.AMBIGUOUS]: figures.cross,
@@ -17,10 +15,10 @@ const CHARACTERS = {
   [Status.UNDEFINED]: '?'
 }
 
-function formatDataTable(dataTable) {
-  const rows = dataTable.raw().map(row => {
-    return row.map(cell => {
-      return cell.replace(/\\/g, '\\\\').replace(/\n/g, '\\n')
+function formatDataTable(arg) {
+  const rows = arg.rows.map(row => {
+    return row.cells.map(cell => {
+      return cell.value.replace(/\\/g, '\\\\').replace(/\n/g, '\\n')
     })
   })
   const table = new Table({
@@ -51,13 +49,12 @@ function formatDataTable(dataTable) {
   return table.toString()
 }
 
-function formatDocString(docString) {
-  return '"""\n' + docString.content + '\n"""'
+function formatDocString(arg) {
+  return '"""\n' + arg.content + '\n"""'
 }
 
 function formatStep({
   colorFns,
-  cwd,
   step,
   stepLineToKeywordMapping,
   stepLineToPickledStepMapping
@@ -77,27 +74,26 @@ function formatStep({
 
   const { actionLocation } = step
   if (actionLocation) {
-    text += ' # ' + colorFns.location(formatLocation(cwd, actionLocation))
+    text += ' # ' + colorFns.location(formatLocation(actionLocation))
   }
   text += '\n'
 
-  // _.each(step.arguments, arg => {
-  //   let str
-  //   if (arg instanceof DataTable) {
-  //     str = formatDataTable(arg)
-  //   } else if (arg instanceof DocString) {
-  //     str = formatDocString(arg)
-  //   } else {
-  //     throw new Error('Unknown argument type: ' + arg)
-  //   }
-  //   text += indentString(colorFn(str) + '\n', 4)
-  // })
+  _.each(pickledStep.arguments, arg => {
+    let str
+    if (arg.rows) {
+      str = formatDataTable(arg)
+    } else if (arg.content) {
+      str = formatDocString(arg)
+    } else {
+      throw new Error('Unknown argument type: ' + arg)
+    }
+    text += indentString(colorFn(str) + '\n', 4)
+  })
   return text
 }
 
 export function formatIssue({
   colorFns,
-  cwd,
   gherkinDocument,
   number,
   pickle,
@@ -107,7 +103,7 @@ export function formatIssue({
 }) {
   const prefix = number + ') '
   let text = prefix
-  const scenarioLocation = formatLocation(cwd, testCase)
+  const scenarioLocation = formatLocation(testCase)
   text +=
     'Scenario: ' +
     pickle.name +
@@ -127,7 +123,6 @@ export function formatIssue({
   _.each(steps, step => {
     const identifier = formatStep({
       colorFns,
-      cwd,
       step,
       stepLineToKeywordMapping,
       stepLineToPickledStepMapping
