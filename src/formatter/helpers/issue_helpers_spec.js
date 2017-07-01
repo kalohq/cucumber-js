@@ -152,62 +152,44 @@ describe('IssueHelpers', function() {
       })
     })
 
-    // describe('with an ambiguous step', function() {
-    //   beforeEach(function() {
-    //     const stepResults = [
-    //       this.passedStepResult,
-    //       {
-    //         ambiguousStepDefinitions: [
-    //           {
-    //             line: 5,
-    //             pattern: 'pattern1',
-    //             uri: 'path/to/project/steps.js'
-    //           },
-    //           {
-    //             line: 6,
-    //             pattern: 'longer pattern2',
-    //             uri: 'path/to/project/steps.js'
-    //           }
-    //         ],
-    //         duration: 0,
-    //         status: Status.AMBIGUOUS,
-    //         step: {
-    //           arguments: [],
-    //           keyword: 'keyword2 ',
-    //           name: 'name2'
-    //         }
-    //       },
-    //       this.skippedStepResult
-    //     ]
-    //     const scenario = {
-    //       line: 1,
-    //       name: 'name1',
-    //       uri: 'path/to/project/a.feature'
-    //     }
-    //     this.options.scenarioResult = {
-    //       scenario,
-    //       stepResults
-    //     }
-    //     this.result = formatIssue(this.options)
-    //   })
-    //
-    //   it('logs the issue', function() {
-    //     expect(this.result).to.eql(
-    //       '1) Scenario: name1 # a.feature:1\n' +
-    //         '   ' +
-    //         figures.tick +
-    //         ' keyword1 name1 # steps.js:2\n' +
-    //         '   ' +
-    //         figures.cross +
-    //         ' keyword2 name2\n' +
-    //         '       Multiple step definitions match:\n' +
-    //         '         pattern1        - steps.js:5\n' +
-    //         '         longer pattern2 - steps.js:6\n' +
-    //         '   - keyword3 name3 # steps.js:4\n\n'
-    //     )
-    //   })
-    // })
-    //
+    describe('with an ambiguous step', function() {
+      beforeEach(function() {
+        this.steps[0].result = this.passedStepResult
+        this.steps[1] = {
+          actionLocation: {
+            line: 3,
+            uri: 'path/to/project/steps.js'
+          },
+          sourceLocation: {
+            line: 4,
+            uri: 'path/to/project/a.feature'
+          },
+          result: {
+            duration: 0,
+            exception:
+              'Multiple step definitions match:\n' +
+              '  pattern1        - steps.js:5\n' +
+              '  longer pattern2 - steps.js:6',
+            status: Status.FAILED
+          }
+        }
+        this.steps[2].result = this.skippedStepResult
+        this.formattedIssue = formatIssue(this.options)
+      })
+
+      it('prints the scenario', function() {
+        expect(this.formattedIssue).to.eql(
+          '1) Scenario: my scenario # a.feature:2\n' +
+            `   ${figures.tick} Given step1 # steps.js:2\n` +
+            `   ${figures.cross} When step2 # steps.js:3\n` +
+            '       Multiple step definitions match:\n' +
+            '         pattern1        - steps.js:5\n' +
+            '         longer pattern2 - steps.js:6\n' +
+            '   - Then step3 # steps.js:4\n\n'
+        )
+      })
+    })
+
     describe('with an undefined step', function() {
       beforeEach(function() {
         this.steps[0].result = this.passedStepResult

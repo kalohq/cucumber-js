@@ -24,16 +24,17 @@ export async function getTestCases({
   await Promise.map(featurePaths, async featurePath => {
     const source = await fs.readFile(featurePath, 'utf8')
     const events = Gherkin.generateEvents(source, featurePath)
-    eventBroadcaster.on('pickle', ({ pickle, uri }) => {
-      if (scenarioFilter.matches(pickle)) {
-        eventBroadcaster.emit('pickle-accepted', { pickle, uri })
-        result.push({ pickle, uri })
-      } else {
-        eventBroadcaster.emit('pickle-rejected', { pickle, uri })
-      }
-    })
     events.forEach(event => {
       eventBroadcaster.emit(event.type, event)
+      if (event.type === 'pickle') {
+        const { pickle, uri } = event
+        if (scenarioFilter.matches(pickle)) {
+          eventBroadcaster.emit('pickle-accepted', { pickle, uri })
+          result.push({ pickle, uri })
+        } else {
+          eventBroadcaster.emit('pickle-rejected', { pickle, uri })
+        }
+      }
     })
   })
   return result

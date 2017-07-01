@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import { getAmbiguousStepException } from './helpers'
 import AttachmentManager from './attachment_manager'
 import Hook from '../models/hook'
 import Promise from 'bluebird'
@@ -165,9 +166,7 @@ export default class TestCaseRunner {
       return { status: Status.UNDEFINED }
     } else if (stepDefinitions.length > 1) {
       return {
-        matches: stepDefinitions.map(d =>
-          _.pick(d, ['pattern', 'line', 'uri'])
-        ),
+        exception: getAmbiguousStepException(stepDefinitions),
         status: Status.AMBIGUOUS
       }
     } else if (this.options.dryRun || this.isSkippingSteps()) {

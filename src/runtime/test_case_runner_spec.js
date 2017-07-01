@@ -286,18 +286,10 @@ describe('TestCaseRunner', function() {
           index: 0,
           testCase: { line: 1, uri: 'path/to/feature' },
           result: {
-            matches: [
-              {
-                pattern: 'pattern1',
-                uri: 'path/to/steps',
-                line: 3
-              },
-              {
-                pattern: 'pattern2',
-                uri: 'path/to/steps',
-                line: 4
-              }
-            ],
+            exception:
+              'Multiple step definitions match:\n' +
+              '  pattern1 - path/to/steps:3\n' +
+              '  pattern2 - path/to/steps:4',
             status: Status.AMBIGUOUS
           }
         })

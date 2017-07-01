@@ -135,7 +135,6 @@ export function formatIssue({
     text += indentString(identifier, prefix.length)
     const message = getStepMessage({
       colorFns,
-      cwd,
       snippetBuilder,
       step
     })

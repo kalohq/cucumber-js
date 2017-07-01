@@ -15,11 +15,11 @@ export function defineHook(cwd, collection) {
       code = options
       options = {}
     }
-    const { line, uri } = getDefinitionLineAndUri()
+    const { line, uri } = getDefinitionLineAndUri(cwd)
     validateArguments({
       args: { code, options },
       fnName: 'defineHook',
-      relativeUri: formatLocation(cwd, { line, uri })
+      relativeUri: formatLocation({ line, uri })
     })
     const hookDefinition = new HookDefinition({ code, line, options, uri })
     collection.push(hookDefinition)
@@ -32,11 +32,11 @@ export function defineStep(cwd, collection) {
       code = options
       options = {}
     }
-    const { line, uri } = getDefinitionLineAndUri()
+    const { line, uri } = getDefinitionLineAndUri(cwd)
     validateArguments({
       args: { code, pattern, options },
       fnName: 'defineStep',
-      relativeUri: formatLocation(cwd, { line, uri })
+      location: formatLocation({ line, uri })
     })
     const stepDefinition = new StepDefinition({
       code,
@@ -49,12 +49,16 @@ export function defineStep(cwd, collection) {
   }
 }
 
-function getDefinitionLineAndUri() {
+function getDefinitionLineAndUri(cwd) {
   const stackframes = StackTrace.getSync()
   const stackframe = stackframes.length > 2 ? stackframes[2] : stackframes[0]
   const line = stackframe.getLineNumber()
-  const fileName = stackframe.getFileName()
-  const uri = fileName ? fileName.replace(/\//g, path.sep) : 'unknown'
+  let uri = stackframe.getFileName()
+  if (uri) {
+    uri = path.relative(cwd, uri.replace(/\//g, path.sep))
+  } else {
+    uri = 'unknown'
+  }
   return { line, uri }
 }
 
