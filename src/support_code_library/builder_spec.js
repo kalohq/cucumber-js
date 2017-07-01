@@ -15,7 +15,6 @@ describe('SupportCodeLibraryBuilder', function() {
       expect(this.options.afterHookDefinitions).to.eql([])
       expect(this.options.beforeHookDefinitions).to.eql([])
       expect(this.options.defaultTimeout).to.eql(5000)
-      expect(this.options.listeners).to.eql([])
       expect(this.options.stepDefinitions).to.eql([])
       expect(this.options.parameterTypeRegistry).to.be.instanceOf(
         ParameterTypeRegistry
