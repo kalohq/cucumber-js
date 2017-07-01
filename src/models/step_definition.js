@@ -1,7 +1,6 @@
 import _ from 'lodash'
 import { CucumberExpression, RegularExpression } from 'cucumber-expressions'
-import DataTable from './step_arguments/data_table'
-import DocString from './step_arguments/doc_string'
+import DataTable from './data_table'
 
 export default class StepDefinition {
   constructor({ code, line, options, pattern, uri }) {
@@ -40,9 +39,9 @@ export default class StepDefinition {
       'transformedValue'
     )
     const stepArgumentParameters = step.arguments.map(function(arg) {
-      if (arg instanceof DataTable) {
-        return arg
-      } else if (arg instanceof DocString) {
+      if (arg.rows) {
+        return new DataTable(arg)
+      } else if (arg.content) {
         return arg.content
       } else {
         throw new Error('Unknown argument type:' + arg)

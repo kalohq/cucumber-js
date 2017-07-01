@@ -9,45 +9,61 @@ export default class SummaryFormatter extends Formatter {
     options.eventBroadcaster
       .on('gherkin-document', ::this.storeGherkinDocument)
       .on('pickle-accepted', ::this.storePickle)
-      .on('test-case-started', ::this.storeTestCase)
+      .on('test-case-prepared', ::this.storeTestCase)
       .on('test-step-finished', ::this.storeTestStepResult)
       .on('test-case-finished', ::this.storeTestCaseResult)
       .on('test-run-finished', ::this.logSummary)
-    this.gherkinDocuments = new Map()
-    this.pickles = new Map()
-    this.testCases = new Map()
+    this.gherkinDocumentMap = new Map() // uri to gherkinDocument
+    this.pickleMap = new Map() // uri:line to {pickle, uri}
+    this.testCaseMap = new Map() // uri:line to {sourceLocation, steps, result}
+  }
+
+  isTestCaseFailure(testCase) {
+    return _.includes([Status.AMBIGUOUS, Status.FAILED], testCase.result.status)
+  }
+
+  isTestCaseWarning(testCase) {
+    return _.includes(
+      [Status.PENDING, Status.UNDEFINED],
+      testCase.result.status
+    )
+  }
+
+  getTestCaseKey({ sourceLocation: { uri, line } }) {
+    return `${uri}:${line}`
   }
 
   storeGherkinDocument({ document, uri }) {
-    this.gherkinDocuments.set(uri, document)
+    this.gherkinDocumentMap.set(uri, document)
   }
 
   storePickle({ pickle, uri }) {
-    this.pickles.set(uri + ':' + pickle.location[0].line, pickle)
+    this.pickleMap.set(uri + ':' + pickle.locations[0].line, pickle)
   }
 
-  storeTestCase({ testCase, steps }) {
-    this.testCases.set(testCase, { steps })
+  storeTestCase({ sourceLocation, steps }) {
+    const key = this.getTestCaseKey({ sourceLocation })
+    this.testCaseMap.set(key, { sourceLocation, steps })
   }
 
   storeTestStepResult({ index, testCase, result }) {
-    this.testCases.get(testCase).steps[index].push(result)
+    const key = this.getTestCaseKey(testCase)
+    this.testCaseMap.get(key).steps[index].result = result
   }
 
-  storeTestCaseResult({ testCase, result }) {
-    this.testCases.get(testCase).result = result
+  storeTestCaseResult({ sourceLocation, result }) {
+    const key = this.getTestCaseKey({ sourceLocation })
+    this.testCaseMap.get(key).result = result
   }
 
-  logSummary() {
+  logSummary(testRun) {
     const failures = []
     const warnings = []
-    this.testCases.forEach(({ result, steps, stepResults }, testCase) => {
-      if (_.includes([Status.AMBIGUOUS, Status.FAILED], result.status)) {
-        failures.push({ testCase, steps, stepResults })
-      } else if (
-        _.includes([Status.PENDING, Status.UNDEFINED], result.status)
-      ) {
-        warnings.push({ testCase, steps, stepResults })
+    this.testCaseMap.forEach(testCase => {
+      if (this.isTestCaseFailure(testCase)) {
+        failures.push(testCase)
+      } else if (this.isTestCaseWarning(testCase)) {
+        warnings.push(testCase)
       }
     })
     if (failures.length > 0) {
@@ -57,21 +73,26 @@ export default class SummaryFormatter extends Formatter {
       this.logIssues({ issues: warnings, title: 'Warnings' })
     }
     this.log(
-      formatSummary({ colorFns: this.colorFns, testCases: this.testCases })
+      formatSummary({
+        colorFns: this.colorFns,
+        testCaseMap: this.testCaseMap,
+        testRun
+      })
     )
   }
 
   logIssues({ issues, title }) {
     this.log(title + ':\n\n')
-    issues.forEach(({ stepResults, testCase }, index) => {
+    issues.forEach((testCase, index) => {
       this.log(
         formatIssue({
           colorFns: this.colorFns,
-          gherkinDocument: this.gherkinDocuments.get(testCase.uri),
+          gherkinDocument: this.gherkinDocumentMap.get(
+            testCase.sourceLocation.uri
+          ),
           number: index + 1,
-          pickle: this.pickles.get(testCase.uri + ':' + testCase.line),
+          pickle: this.pickleMap.get(this.getTestCaseKey(testCase)),
           snippetBuilder: this.snippetBuilder,
-          stepResults,
           testCase
         })
       )

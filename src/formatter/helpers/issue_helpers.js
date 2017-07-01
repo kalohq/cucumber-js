@@ -98,12 +98,11 @@ export function formatIssue({
   number,
   pickle,
   snippetBuilder,
-  steps,
   testCase
 }) {
   const prefix = number + ') '
   let text = prefix
-  const scenarioLocation = formatLocation(testCase)
+  const scenarioLocation = formatLocation(testCase.sourceLocation)
   text +=
     'Scenario: ' +
     pickle.name +
@@ -120,7 +119,7 @@ export function formatIssue({
     .map(step => [step.locations[0].line, step])
     .fromPairs()
     .value()
-  _.each(steps, step => {
+  _.each(testCase.steps, step => {
     const identifier = formatStep({
       colorFns,
       step,

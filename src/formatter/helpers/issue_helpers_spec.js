@@ -31,27 +31,28 @@ describe('IssueHelpers', function() {
       ]
     }
     this.testCase = {
-      uri: 'a.feature',
-      line: 2
-    }
-    this.steps = [
-      {
-        actionLocation: { line: 2, uri: 'steps.js' },
-        sourceLocation: { line: 3, uri: 'a.feature' }
+      sourceLocation: {
+        uri: 'a.feature',
+        line: 2
       },
-      {},
-      {
-        actionLocation: { line: 4, uri: 'steps.js' },
-        sourceLocation: { line: 5, uri: 'a.feature' }
-      }
-    ]
+      steps: [
+        {
+          actionLocation: { line: 2, uri: 'steps.js' },
+          sourceLocation: { line: 3, uri: 'a.feature' }
+        },
+        {},
+        {
+          actionLocation: { line: 4, uri: 'steps.js' },
+          sourceLocation: { line: 5, uri: 'a.feature' }
+        }
+      ]
+    }
     this.options = {
       colorFns: getColorFns(false),
       gherkinDocument: this.gherkinDocument,
       number: 1,
       pickle: this.pickle,
       snippetBuilder: createMock({ build: 'snippet' }),
-      steps: this.steps,
       testCase: this.testCase
     }
     this.passedStepResult = { duration: 0, status: Status.PASSED }
@@ -61,8 +62,8 @@ describe('IssueHelpers', function() {
   describe('formatIssue', function() {
     describe('returns the formatted scenario', function() {
       beforeEach(function() {
-        this.steps[0].result = this.passedStepResult
-        this.steps[1] = {
+        this.testCase.steps[0].result = this.passedStepResult
+        this.testCase.steps[1] = {
           actionLocation: { line: 3, uri: 'steps.js' },
           sourceLocation: { line: 4, uri: 'a.feature' },
           result: {
@@ -70,7 +71,7 @@ describe('IssueHelpers', function() {
             status: Status.FAILED
           }
         }
-        this.steps[2].result = this.skippedStepResult
+        this.testCase.steps[2].result = this.skippedStepResult
         this.formattedIssue = formatIssue(this.options)
       })
 
@@ -87,8 +88,8 @@ describe('IssueHelpers', function() {
 
     describe('with an ambiguous step', function() {
       beforeEach(function() {
-        this.steps[0].result = this.passedStepResult
-        this.steps[1] = {
+        this.testCase.steps[0].result = this.passedStepResult
+        this.testCase.steps[1] = {
           actionLocation: { line: 3, uri: 'steps.js' },
           sourceLocation: { line: 4, uri: 'a.feature' },
           result: {
@@ -99,7 +100,7 @@ describe('IssueHelpers', function() {
             status: Status.FAILED
           }
         }
-        this.steps[2].result = this.skippedStepResult
+        this.testCase.steps[2].result = this.skippedStepResult
         this.formattedIssue = formatIssue(this.options)
       })
 
@@ -118,12 +119,12 @@ describe('IssueHelpers', function() {
 
     describe('with an undefined step', function() {
       beforeEach(function() {
-        this.steps[0].result = this.passedStepResult
-        this.steps[1] = {
+        this.testCase.steps[0].result = this.passedStepResult
+        this.testCase.steps[1] = {
           sourceLocation: { line: 4, uri: 'a.feature' },
           result: { status: Status.UNDEFINED }
         }
-        this.steps[2].result = this.skippedStepResult
+        this.testCase.steps[2].result = this.skippedStepResult
         this.formattedIssue = formatIssue(this.options)
       })
 
@@ -143,13 +144,13 @@ describe('IssueHelpers', function() {
 
     describe('with a pending step', function() {
       beforeEach(function() {
-        this.steps[0].result = this.passedStepResult
-        this.steps[1] = {
+        this.testCase.steps[0].result = this.passedStepResult
+        this.testCase.steps[1] = {
           actionLocation: { line: 3, uri: 'steps.js' },
           sourceLocation: { line: 4, uri: 'a.feature' },
           result: { status: Status.PENDING }
         }
-        this.steps[2].result = this.skippedStepResult
+        this.testCase.steps[2].result = this.skippedStepResult
         this.formattedIssue = formatIssue(this.options)
       })
 
@@ -175,13 +176,13 @@ describe('IssueHelpers', function() {
             ]
           }
         ]
-        this.steps[0].result = this.passedStepResult
-        this.steps[1] = {
+        this.testCase.steps[0].result = this.passedStepResult
+        this.testCase.steps[1] = {
           actionLocation: { line: 3, uri: 'steps.js' },
           sourceLocation: { line: 4, uri: 'a.feature' },
           result: { status: Status.PENDING }
         }
-        this.steps[2].result = this.skippedStepResult
+        this.testCase.steps[2].result = this.skippedStepResult
         this.formattedIssue = formatIssue(this.options)
       })
 
@@ -207,13 +208,13 @@ describe('IssueHelpers', function() {
             content: 'this is a multiline\ndoc string\n\n:-)'
           }
         ]
-        this.steps[0].result = this.passedStepResult
-        this.steps[1] = {
+        this.testCase.steps[0].result = this.passedStepResult
+        this.testCase.steps[1] = {
           actionLocation: { line: 3, uri: 'steps.js' },
           sourceLocation: { line: 4, uri: 'a.feature' },
           result: { status: Status.PENDING }
         }
-        this.steps[2].result = this.skippedStepResult
+        this.testCase.steps[2].result = this.skippedStepResult
         this.formattedIssue = formatIssue(this.options)
       })
 
