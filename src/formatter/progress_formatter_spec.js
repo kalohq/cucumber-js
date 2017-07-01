@@ -19,22 +19,25 @@ describe('ProgressFormatter', function() {
       eventBroadcaster: this.eventBroadcaster,
       log: logFn
     })
-    sinon
-      .stub(SummaryFormatter.prototype, 'onTestRunFinished')
-      .callsFake(() => {
-        logFn('summary')
-      })
-  })
-
-  afterEach(function() {
-    SummaryFormatter.prototype.onTestRunFinished.restore()
+    sinon.stub(this.progressFormatter, 'logSummary').callsFake(() => {
+      logFn('summary')
+    })
   })
 
   describe('test step finished', function() {
+    beforeEach(function() {
+      this.testCase = { uri: 'path/to/feature', line: 1 }
+      this.eventBroadcaster.emit('test-case-started', {
+        testCase: this.testCase
+      })
+    })
+
     describe('ambiguous', function() {
       beforeEach(function() {
         this.eventBroadcaster.emit('test-step-finished', {
-          result: { status: Status.AMBIGUOUS }
+          index: 0,
+          result: { status: Status.AMBIGUOUS },
+          testCase: this.testCase
         })
       })
 
@@ -46,7 +49,9 @@ describe('ProgressFormatter', function() {
     describe('failed', function() {
       beforeEach(function() {
         this.eventBroadcaster.emit('test-step-finished', {
-          result: { status: Status.FAILED }
+          index: 0,
+          result: { status: Status.FAILED },
+          testCase: this.testCase
         })
       })
 
@@ -58,19 +63,23 @@ describe('ProgressFormatter', function() {
     describe('passed', function() {
       beforeEach(function() {
         this.eventBroadcaster.emit('test-step-finished', {
-          result: { status: Status.PASSED }
+          index: 0,
+          result: { status: Status.PASSED },
+          testCase: this.testCase
         })
       })
 
-      it('does not output', function() {
-        expect(this.output).to.eql('')
+      it('outputs .', function() {
+        expect(this.output).to.eql('.')
       })
     })
 
     describe('pending', function() {
       beforeEach(function() {
         this.eventBroadcaster.emit('test-step-finished', {
-          result: { status: Status.PENDING }
+          index: 0,
+          result: { status: Status.PENDING },
+          testCase: this.testCase
         })
       })
 
@@ -82,7 +91,9 @@ describe('ProgressFormatter', function() {
     describe('skipped', function() {
       beforeEach(function() {
         this.eventBroadcaster.emit('test-step-finished', {
-          result: { status: Status.SKIPPED }
+          index: 0,
+          result: { status: Status.SKIPPED },
+          testCase: this.testCase
         })
       })
 
@@ -94,7 +105,9 @@ describe('ProgressFormatter', function() {
     describe('undefined', function() {
       beforeEach(function() {
         this.eventBroadcaster.emit('test-step-finished', {
-          result: { status: Status.UNDEFINED }
+          index: 0,
+          result: { status: Status.UNDEFINED },
+          testCase: this.testCase
         })
       })
 

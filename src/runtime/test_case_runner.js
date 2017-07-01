@@ -49,8 +49,6 @@ export default class TestCaseRunner {
       const data = { sourceLocation }
       if (actionLocations.length === 1) {
         data.actionLocation = actionLocations[0]
-      } else if (actionLocations.length > 1) {
-        data.actionLocations = actionLocations
       }
       steps.push(data)
     })
@@ -120,7 +118,7 @@ export default class TestCaseRunner {
     this.emit('test-step-started', { index: this.testStepIndex })
     const testStepResult = await runStepFn()
     if (this.shouldUpdateStatus(testStepResult)) {
-      this.result = _.omit(testStepResult, 'duration')
+      this.result = _.pick(testStepResult, 'status')
     }
     this.emit('test-step-finished', {
       index: this.testStepIndex,
@@ -166,7 +164,12 @@ export default class TestCaseRunner {
     if (stepDefinitions.length === 0) {
       return { status: Status.UNDEFINED }
     } else if (stepDefinitions.length > 1) {
-      return { status: Status.AMBIGUOUS }
+      return {
+        matches: stepDefinitions.map(d =>
+          _.pick(d, ['pattern', 'line', 'uri'])
+        ),
+        status: Status.AMBIGUOUS
+      }
     } else if (this.options.dryRun || this.isSkippingSteps()) {
       return { status: Status.SKIPPED }
     } else {

@@ -7,47 +7,47 @@ export default class SummaryFormatter extends Formatter {
   constructor(options) {
     super(options)
     options.eventBroadcaster
-      .on('gherkin-document', this.onGherkinDocument.bind(this))
-      .on('pickle-accepted', this.onGherkinDocument.bind(this))
-      .on('test-case-started', this.onTestCaseStarted.bind(this))
-      .on('test-step-finished', this.onTestStepFinished.bind(this))
-      .on('test-case-finished', this.onTestCaseFinished.bind(this))
-      .on('test-run-finished', this.onTestRunFinished.bind(this))
+      .on('gherkin-document', ::this.storeGherkinDocument)
+      .on('pickle-accepted', ::this.storePickle)
+      .on('test-case-started', ::this.storeTestCase)
+      .on('test-step-finished', ::this.storeTestStepResult)
+      .on('test-case-finished', ::this.storeTestCaseResult)
+      .on('test-run-finished', ::this.logSummary)
     this.gherkinDocuments = new Map()
     this.pickles = new Map()
     this.testCases = new Map()
   }
 
-  onGherkinDocument({ document, uri }) {
+  storeGherkinDocument({ document, uri }) {
     this.gherkinDocuments.set(uri, document)
   }
 
-  onPickle({ pickle, uri }) {
+  storePickle({ pickle, uri }) {
     this.pickles.set(uri + ':' + pickle.location[0].line, pickle)
   }
 
-  onTestCaseStarted({ testCase }) {
-    this.testCases.set(testCase, { stepResults: [] })
+  storeTestCase({ testCase, steps }) {
+    this.testCases.set(testCase, { steps })
   }
 
-  onTestStepFinished({ testCase, result }) {
-    this.testCases.get(testCase).stepResults.push(result)
+  storeTestStepResult({ index, testCase, result }) {
+    this.testCases.get(testCase).steps[index].push(result)
   }
 
-  onTestCaseFinished({ testCase, result }) {
+  storeTestCaseResult({ testCase, result }) {
     this.testCases.get(testCase).result = result
   }
 
-  onTestRunFinished() {
+  logSummary() {
     const failures = []
     const warnings = []
-    this.testCases.forEach(({ result, stepResults }, testCase) => {
+    this.testCases.forEach(({ result, steps, stepResults }, testCase) => {
       if (_.includes([Status.AMBIGUOUS, Status.FAILED], result.status)) {
-        failures.push({ testCase, stepResults })
+        failures.push({ testCase, steps, stepResults })
       } else if (
         _.includes([Status.PENDING, Status.UNDEFINED], result.status)
       ) {
-        warnings.push({ testCase, stepResults })
+        warnings.push({ testCase, steps, stepResults })
       }
     })
     if (failures.length > 0) {
@@ -57,10 +57,7 @@ export default class SummaryFormatter extends Formatter {
       this.logIssues({ issues: warnings, title: 'Warnings' })
     }
     this.log(
-      formatSummary({
-        colorFns: this.colorFns,
-        testCases: this.testCases
-      })
+      formatSummary({ colorFns: this.colorFns, testCases: this.testCases })
     )
   }
 

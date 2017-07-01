@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { formatLocation } from './location_helpers'
-import { getStepResultMessage } from './step_result_helpers'
+import { getStepMessage } from './step_result_helpers'
 import indentString from 'indent-string'
 import Status from '../../status'
 import figures from 'figures'
@@ -55,61 +55,89 @@ function formatDocString(docString) {
   return '"""\n' + docString.content + '\n"""'
 }
 
-function formatStepResult({ colorFns, cwd, stepResult }) {
-  const { status, step } = stepResult
+function formatStep({
+  colorFns,
+  cwd,
+  step,
+  stepLineToKeywordMapping,
+  stepLineToPickledStepMapping
+}) {
+  const { status } = step.result
   const colorFn = colorFns[status]
+  const pickledStep = stepLineToPickledStepMapping[step.sourceLocation.line]
 
-  const symbol = CHARACTERS[stepResult.status]
-  const identifier = colorFn(symbol + ' ' + step.keyword + (step.name || ''))
+  const symbol = CHARACTERS[status]
+  const keyword = _.chain(pickledStep.locations)
+    .map(({ line }) => stepLineToKeywordMapping[line])
+    .compact()
+    .first()
+    .value()
+  const identifier = colorFn(symbol + ' ' + keyword + (pickledStep.text || ''))
   let text = identifier
 
-  const { stepDefinition } = stepResult
-  if (stepDefinition) {
-    const stepDefinitionLocation = formatLocation(cwd, stepDefinition)
-    const stepDefinitionLine = ' # ' + colorFns.location(stepDefinitionLocation)
-    text += stepDefinitionLine
+  const { actionLocation } = step
+  if (actionLocation) {
+    text += ' # ' + colorFns.location(formatLocation(cwd, actionLocation))
   }
   text += '\n'
 
-  _.each(step.arguments, arg => {
-    let str
-    if (arg instanceof DataTable) {
-      str = formatDataTable(arg)
-    } else if (arg instanceof DocString) {
-      str = formatDocString(arg)
-    } else {
-      throw new Error('Unknown argument type: ' + arg)
-    }
-    text += indentString(colorFn(str) + '\n', 4)
-  })
+  // _.each(step.arguments, arg => {
+  //   let str
+  //   if (arg instanceof DataTable) {
+  //     str = formatDataTable(arg)
+  //   } else if (arg instanceof DocString) {
+  //     str = formatDocString(arg)
+  //   } else {
+  //     throw new Error('Unknown argument type: ' + arg)
+  //   }
+  //   text += indentString(colorFn(str) + '\n', 4)
+  // })
   return text
 }
 
 export function formatIssue({
   colorFns,
   cwd,
+  gherkinDocument,
   number,
+  pickle,
   snippetBuilder,
-  scenarioResult
+  steps,
+  testCase
 }) {
   const prefix = number + ') '
-  const { scenario, stepResults } = scenarioResult
   let text = prefix
-  const scenarioLocation = formatLocation(cwd, scenario)
+  const scenarioLocation = formatLocation(cwd, testCase)
   text +=
     'Scenario: ' +
-    scenario.name +
+    pickle.name +
     ' # ' +
     colorFns.location(scenarioLocation) +
     '\n'
-  _.each(stepResults, stepResult => {
-    const identifier = formatStepResult({ colorFns, cwd, stepResult })
+  const stepLineToKeywordMapping = _.chain(gherkinDocument.feature.children)
+    .map('steps')
+    .flatten()
+    .map(step => [step.location.line, step.keyword])
+    .fromPairs()
+    .value()
+  const stepLineToPickledStepMapping = _.chain(pickle.steps)
+    .map(step => [step.locations[0].line, step])
+    .fromPairs()
+    .value()
+  _.each(steps, step => {
+    const identifier = formatStep({
+      colorFns,
+      cwd,
+      step,
+      stepLineToKeywordMapping,
+      stepLineToPickledStepMapping
+    })
     text += indentString(identifier, prefix.length)
-    const message = getStepResultMessage({
+    const message = getStepMessage({
       colorFns,
       cwd,
       snippetBuilder,
-      stepResult
+      step
     })
     if (message) {
       text += indentString(message, prefix.length + 4) + '\n'

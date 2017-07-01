@@ -14,13 +14,13 @@ export default class ProgressFormatter extends SummaryFormatter {
   constructor(options) {
     super(options)
     options.eventBroadcaster
-      .on('test-step-finished', this.onTestStepFinished.bind(this))
+      .on('test-step-finished', ::this.logProgress)
       .prependListener('test-run-finished', () => {
         this.log('\n\n')
       })
   }
 
-  onTestStepFinished({ result }) {
+  logProgress({ result }) {
     const { status } = result
     const character = this.colorFns[status](STATUS_CHARACTER_MAPPING[status])
     this.log(character)

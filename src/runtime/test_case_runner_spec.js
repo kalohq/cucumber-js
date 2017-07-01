@@ -217,8 +217,7 @@ describe('TestCaseRunner', function() {
         expect(this.onTestCaseFinished).to.have.been.calledOnce
         expect(this.onTestCaseFinished).to.have.been.calledWith({
           result: {
-            status: Status.FAILED,
-            exception: this.error
+            status: Status.FAILED
           },
           testCase: { line: 1, uri: 'path/to/feature' }
         })
@@ -229,11 +228,13 @@ describe('TestCaseRunner', function() {
       beforeEach(async function() {
         this.step = { uri: 'path/to/feature', locations: [{ line: 2 }] }
         const stepDefinition1 = {
+          pattern: 'pattern1',
           uri: 'path/to/steps',
           line: 3,
           matchesStepName: sinon.stub().returns(true)
         }
         const stepDefinition2 = {
+          pattern: 'pattern2',
           uri: 'path/to/steps',
           line: 4,
           matchesStepName: sinon.stub().returns(true)
@@ -257,10 +258,6 @@ describe('TestCaseRunner', function() {
         expect(this.onTestCasePrepared).to.have.been.calledWith({
           steps: [
             {
-              actionLocations: [
-                { line: 3, uri: 'path/to/steps' },
-                { line: 4, uri: 'path/to/steps' }
-              ],
               sourceLocation: { line: 2, uri: 'path/to/feature' }
             }
           ],
@@ -288,7 +285,21 @@ describe('TestCaseRunner', function() {
         expect(this.onTestStepFinished).to.have.been.calledWith({
           index: 0,
           testCase: { line: 1, uri: 'path/to/feature' },
-          result: { status: Status.AMBIGUOUS }
+          result: {
+            matches: [
+              {
+                pattern: 'pattern1',
+                uri: 'path/to/steps',
+                line: 3
+              },
+              {
+                pattern: 'pattern2',
+                uri: 'path/to/steps',
+                line: 4
+              }
+            ],
+            status: Status.AMBIGUOUS
+          }
         })
       })
 
