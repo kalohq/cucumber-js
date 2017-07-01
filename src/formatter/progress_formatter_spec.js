@@ -1,9 +1,6 @@
 import getColorFns from './get_color_fns'
-import Hook from '../models/hook'
 import ProgressFormatter from './progress_formatter'
 import Status from '../status'
-import Step from '../models/step'
-import SummaryFormatter from './summary_formatter'
 import { EventEmitter } from 'events'
 
 describe('ProgressFormatter', function() {
@@ -19,16 +16,14 @@ describe('ProgressFormatter', function() {
       eventBroadcaster: this.eventBroadcaster,
       log: logFn
     })
-    sinon.stub(this.progressFormatter, 'logSummary').callsFake(() => {
-      logFn('summary')
-    })
   })
 
   describe('test step finished', function() {
     beforeEach(function() {
-      this.testCase = { uri: 'path/to/feature', line: 1 }
-      this.eventBroadcaster.emit('test-case-started', {
-        testCase: this.testCase
+      this.testCase = { sourceLocation: { uri: 'path/to/feature', line: 1 } }
+      this.eventBroadcaster.emit('test-case-prepared', {
+        sourceLocation: this.testCase.sourceLocation,
+        steps: [{}]
       })
     })
 
@@ -119,11 +114,13 @@ describe('ProgressFormatter', function() {
 
   describe(' result', function() {
     beforeEach(function() {
-      this.eventBroadcaster.emit('test-run-finished')
+      this.eventBroadcaster.emit('test-run-finished', {
+        result: { duration: 0 }
+      })
     })
 
     it('outputs two newlines before the summary', function() {
-      expect(this.output).to.eql('\n\nsummary')
+      expect(this.output).to.eql('\n\n0 scenarios\n0 steps\n0m00.000s\n')
     })
   })
 })

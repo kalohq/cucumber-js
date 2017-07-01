@@ -1,7 +1,5 @@
 import _ from 'lodash'
 import { CucumberExpressionGenerator } from 'cucumber-expressions'
-import DataTable from '../../models/step_arguments/data_table'
-import DocString from '../../models/step_arguments/doc_string'
 import KeywordType from '../../keyword_type'
 
 export default class StepDefinitionSnippetBuilder {
@@ -49,9 +47,9 @@ export default class StepDefinitionSnippetBuilder {
 
   getStepArgumentParameters(step) {
     return step.arguments.map(function(arg) {
-      if (arg instanceof DataTable) {
+      if (arg.rows) {
         return 'table'
-      } else if (arg instanceof DocString) {
+      } else if (arg.content) {
         return 'string'
       } else {
         throw new Error(`Unknown argument type: ${arg}`)

@@ -1,8 +1,6 @@
 import getColorFns from './get_color_fns'
-import Hook from '../models/hook'
 import ProgressBarFormatter from './progress_bar_formatter'
 import Status from '../status'
-import Step from '../models/step'
 
 describe('ProgressBarFormatter', function() {
   beforeEach(function() {

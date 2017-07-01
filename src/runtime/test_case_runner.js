@@ -1,7 +1,6 @@
 import _ from 'lodash'
 import { getAmbiguousStepException } from './helpers'
 import AttachmentManager from './attachment_manager'
-import Hook from '../models/hook'
 import Promise from 'bluebird'
 import Status from '../status'
 import StepRunner from './step_runner'
@@ -131,31 +130,24 @@ export default class TestCaseRunner {
   async run() {
     this.emitPrepared()
     this.emit('test-case-started', {})
-    await this.runHooks({
-      hookDefinitions: this.beforeHookDefinitions,
-      hookKeyword: Hook.AFTER_STEP_KEYWORD
-    })
+    await this.runHooks(this.beforeHookDefinitions)
     await this.runSteps()
-    await this.runHooks({
-      hookDefinitions: this.afterHookDefinitions,
-      hookKeyword: Hook.AFTER_STEP_KEYWORD
-    })
+    await this.runHooks(this.afterHookDefinitions)
     this.emit('test-case-finished', { result: this.result })
   }
 
-  async runHook(hook, hookDefinition) {
+  async runHook(hookDefinition) {
     if (this.options.dryRun) {
       return { status: Status.SKIPPED }
     } else {
-      return await this.invokeStep(hook, hookDefinition)
+      return await this.invokeStep(null, hookDefinition)
     }
   }
 
-  async runHooks({ hookDefinitions, hookKeyword }) {
+  async runHooks(hookDefinitions) {
     await Promise.each(hookDefinitions, async hookDefinition => {
       await this.aroundTestStep(() => {
-        const hook = new Hook({ keyword: hookKeyword, scenario: this.scenario })
-        return this.runHook(hook, hookDefinition)
+        return this.runHook(hookDefinition)
       })
     })
   }

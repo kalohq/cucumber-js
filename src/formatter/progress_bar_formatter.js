@@ -1,6 +1,5 @@
 import _ from 'lodash'
 import { formatIssue, formatSummary } from './helpers'
-import Hook from '../models/hook'
 import Status from '../status'
 import Formatter from './'
 import ProgressBar from 'progress'
@@ -35,9 +34,7 @@ export default class ProgressBarFormatter extends Formatter {
   }
 
   handleStepResult(stepResult) {
-    if (!(stepResult.step instanceof Hook)) {
-      this.progressBar.tick()
-    }
+    this.progressBar.tick()
   }
 
   handleScenarioResult(scenarioResult) {

@@ -2,34 +2,18 @@ import getColorFns from '../get_color_fns'
 import Status from '../../status'
 import { formatIssue } from './issue_helpers'
 import figures from 'figures'
+import Gherkin from 'gherkin'
 
 describe('IssueHelpers', function() {
   beforeEach(function() {
-    // stripped down version of gherkin document with only what is required
-    this.gherkinDocument = {
-      feature: {
-        children: [
-          {
-            steps: [
-              { location: { line: 3 }, keyword: 'Given ' },
-              { location: { line: 4 }, keyword: 'When ' },
-              { location: { line: 5 }, keyword: 'Then ' }
-            ]
-          }
-        ]
-      },
-      comments: []
-    }
-    // stripped down version of pickle with only what is required
-    this.pickle = {
-      name: 'my scenario',
-      locations: [{ line: 2 }],
-      steps: [
-        { text: 'step1', arguments: [], locations: [{ line: 3 }] },
-        { text: 'step2', arguments: [], locations: [{ line: 4 }] },
-        { text: 'step3', arguments: [], locations: [{ line: 5 }] }
-      ]
-    }
+    const gherkinDocument = new Gherkin.Parser().parse(
+      'Feature: my feature\n' +
+        '  Scenario: my scenario\n' +
+        '    Given step1\n' +
+        '    When step2\n' +
+        '    Then step3\n'
+    )
+    const pickle = new Gherkin.Compiler().compile(gherkinDocument)[0]
     this.testCase = {
       sourceLocation: {
         uri: 'a.feature',
@@ -49,9 +33,9 @@ describe('IssueHelpers', function() {
     }
     this.options = {
       colorFns: getColorFns(false),
-      gherkinDocument: this.gherkinDocument,
+      gherkinDocument,
       number: 1,
-      pickle: this.pickle,
+      pickle,
       snippetBuilder: createMock({ build: 'snippet' }),
       testCase: this.testCase
     }
@@ -167,15 +151,19 @@ describe('IssueHelpers', function() {
 
     describe('step with data table', function() {
       beforeEach(function() {
-        this.pickle.steps[0].arguments = [
-          {
-            rows: [
-              { cells: [{ value: 'aaa' }, { value: 'b' }, { value: 'c' }] },
-              { cells: [{ value: 'd' }, { value: 'e' }, { value: 'ff' }] },
-              { cells: [{ value: 'gg' }, { value: 'h' }, { value: 'iii' }] }
-            ]
-          }
-        ]
+        const gherkinDocument = new Gherkin.Parser().parse(
+          'Feature: my feature\n' +
+            '  Scenario: my scenario\n' +
+            '    Given step1\n' +
+            '    When step2\n' +
+            '    Then step3\n' +
+            '      |aaa|b|c|\n' +
+            '      |d|e|ff|\n' +
+            '      |gg|h|iii|\n'
+        )
+        this.options.gherkinDocument = gherkinDocument
+        const pickle = new Gherkin.Compiler().compile(gherkinDocument)[0]
+        this.options.pickle = pickle
         this.testCase.steps[0].result = this.passedStepResult
         this.testCase.steps[1] = {
           actionLocation: { line: 3, uri: 'steps.js' },
@@ -190,24 +178,34 @@ describe('IssueHelpers', function() {
         expect(this.formattedIssue).to.eql(
           '1) Scenario: my scenario # a.feature:2\n' +
             `   ${figures.tick} Given step1 # steps.js:2\n` +
-            '       | aaa | b | c   |\n' +
-            '       | d   | e | ff  |\n' +
-            '       | gg  | h | iii |\n' +
             `   ? When step2 # steps.js:3\n` +
             '       Pending\n' +
-            '   - Then step3 # steps.js:4\n\n'
+            '   - Then step3 # steps.js:4\n' +
+            '       | aaa | b | c   |\n' +
+            '       | d   | e | ff  |\n' +
+            '       | gg  | h | iii |\n\n'
         )
       })
     })
 
     describe('step with doc string', function() {
       beforeEach(function() {
-        this.pickle.steps[0].arguments = [
-          {
-            location: { line: 5, column: 1 },
-            content: 'this is a multiline\ndoc string\n\n:-)'
-          }
-        ]
+        const gherkinDocument = new Gherkin.Parser().parse(
+          'Feature: my feature\n' +
+            '  Scenario: my scenario\n' +
+            '    Given step1\n' +
+            '    When step2\n' +
+            '    Then step3\n' +
+            '       """\n' +
+            '       this is a multiline\n' +
+            '       doc string\n' +
+            '\n' +
+            '       :-)\n' +
+            '       """\n'
+        )
+        this.options.gherkinDocument = gherkinDocument
+        const pickle = new Gherkin.Compiler().compile(gherkinDocument)[0]
+        this.options.pickle = pickle
         this.testCase.steps[0].result = this.passedStepResult
         this.testCase.steps[1] = {
           actionLocation: { line: 3, uri: 'steps.js' },
@@ -222,15 +220,15 @@ describe('IssueHelpers', function() {
         expect(this.formattedIssue).to.eql(
           '1) Scenario: my scenario # a.feature:2\n' +
             `   ${figures.tick} Given step1 # steps.js:2\n` +
+            `   ? When step2 # steps.js:3\n` +
+            '       Pending\n' +
+            '   - Then step3 # steps.js:4\n' +
             '       """\n' +
             '       this is a multiline\n' +
             '       doc string\n' +
             '\n' +
             '       :-)\n' +
-            '       """\n' +
-            `   ? When step2 # steps.js:3\n` +
-            '       Pending\n' +
-            '   - Then step3 # steps.js:4\n\n'
+            '       """\n\n'
         )
       })
     })

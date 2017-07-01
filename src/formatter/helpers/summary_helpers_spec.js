@@ -101,7 +101,7 @@ describe('SummaryHelpers', function() {
 
     describe('with a duration of 123 milliseconds', function() {
       beforeEach(function() {
-        this.testRun.duration = 123
+        this.testRun.result.duration = 123
         this.result = formatSummary(this.options)
       })
 
@@ -114,7 +114,7 @@ describe('SummaryHelpers', function() {
 
     describe('with a duration of 12.3 seconds', function() {
       beforeEach(function() {
-        this.testRun.duration = 123 * 100
+        this.testRun.result.duration = 123 * 100
         this.result = formatSummary(this.options)
       })
 
@@ -127,7 +127,7 @@ describe('SummaryHelpers', function() {
 
     describe('with a duration of 120.3 seconds', function() {
       beforeEach(function() {
-        this.testRun.duration = 123 * 1000
+        this.testRun.result.duration = 123 * 1000
         this.result = formatSummary(this.options)
       })
 
