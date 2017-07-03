@@ -32,7 +32,7 @@ export default class Cli {
     supportCodeLibrary
   }) {
     const streamsToClose = []
-    const formatters = await Promise.map(
+    await Promise.map(
       formats,
       async ({ type, outputTo }) => {
         let stream = this.stdout

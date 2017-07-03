@@ -26,15 +26,15 @@ export default class TestCaseRunner {
   }
 
   emit(name, data) {
-    var sourceLocation =  {
+    let sourceLocation = {
       uri: this.testCase.uri,
       line: this.testCase.pickle.locations[0].line
     }
-    var eventData = {...data}
+    let eventData = { ...data }
     if (_.startsWith(name, 'test-case')) {
       eventData.sourceLocation = sourceLocation
     } else {
-      eventData.testCase = {sourceLocation}
+      eventData.testCase = { sourceLocation }
     }
     this.eventBroadcaster.emit(name, eventData)
   }

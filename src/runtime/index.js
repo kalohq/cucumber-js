@@ -39,7 +39,7 @@ export default class Runtime {
     }
     this.eventBroadcaster.emit('test-run-started')
     await Promise.each(this.testCases, ::this.runTestCase)
-    this.eventBroadcaster.emit('test-run-finished', {result: this.result})
+    this.eventBroadcaster.emit('test-run-finished', { result: this.result })
     if (this.options.filterStacktraces) {
       this.stackTraceFilter.unfilter()
     }

@@ -124,7 +124,7 @@ describe('TestCaseRunner', function() {
         expect(this.onTestStepStarted).to.have.been.calledOnce
         expect(this.onTestStepStarted).to.have.been.calledWith({
           index: 0,
-          testCase: { sourceLocation: {line: 1, uri: 'path/to/feature' }}
+          testCase: { sourceLocation: { line: 1, uri: 'path/to/feature' } }
         })
       })
 
@@ -132,7 +132,7 @@ describe('TestCaseRunner', function() {
         expect(this.onTestStepFinished).to.have.been.calledOnce
         expect(this.onTestStepFinished).to.have.been.calledWith({
           index: 0,
-          testCase: { sourceLocation: {line: 1, uri: 'path/to/feature' }},
+          testCase: { sourceLocation: { line: 1, uri: 'path/to/feature' } },
           result: { duration: 1, status: Status.PASSED }
         })
       })
@@ -141,7 +141,7 @@ describe('TestCaseRunner', function() {
         expect(this.onTestCaseFinished).to.have.been.calledOnce
         expect(this.onTestCaseFinished).to.have.been.calledWith({
           result: { duration: 1, status: Status.PASSED },
-          sourceLocation: {line: 1, uri: 'path/to/feature' }
+          sourceLocation: { line: 1, uri: 'path/to/feature' }
         })
       })
     })
@@ -196,7 +196,7 @@ describe('TestCaseRunner', function() {
         expect(this.onTestStepStarted).to.have.been.calledOnce
         expect(this.onTestStepStarted).to.have.been.calledWith({
           index: 0,
-          testCase: { sourceLocation: {line: 1, uri: 'path/to/feature' }}
+          testCase: { sourceLocation: { line: 1, uri: 'path/to/feature' } }
         })
       })
 
@@ -204,7 +204,7 @@ describe('TestCaseRunner', function() {
         expect(this.onTestStepFinished).to.have.been.calledOnce
         expect(this.onTestStepFinished).to.have.been.calledWith({
           index: 0,
-          testCase: { sourceLocation: {line: 1, uri: 'path/to/feature' }},
+          testCase: { sourceLocation: { line: 1, uri: 'path/to/feature' } },
           result: {
             duration: 1,
             status: Status.FAILED,
@@ -277,7 +277,7 @@ describe('TestCaseRunner', function() {
         expect(this.onTestStepStarted).to.have.been.calledOnce
         expect(this.onTestStepStarted).to.have.been.calledWith({
           index: 0,
-          testCase: { sourceLocation: {line: 1, uri: 'path/to/feature' }}
+          testCase: { sourceLocation: { line: 1, uri: 'path/to/feature' } }
         })
       })
 
@@ -285,7 +285,7 @@ describe('TestCaseRunner', function() {
         expect(this.onTestStepFinished).to.have.been.calledOnce
         expect(this.onTestStepFinished).to.have.been.calledWith({
           index: 0,
-          testCase: { sourceLocation: {line: 1, uri: 'path/to/feature' }},
+          testCase: { sourceLocation: { line: 1, uri: 'path/to/feature' } },
           result: {
             exception:
               'Multiple step definitions match:\n' +
@@ -337,7 +337,7 @@ describe('TestCaseRunner', function() {
         expect(this.onTestStepStarted).to.have.been.calledOnce
         expect(this.onTestStepStarted).to.have.been.calledWith({
           index: 0,
-          testCase: { sourceLocation: {line: 1, uri: 'path/to/feature' }}
+          testCase: { sourceLocation: { line: 1, uri: 'path/to/feature' } }
         })
       })
 
@@ -345,7 +345,7 @@ describe('TestCaseRunner', function() {
         expect(this.onTestStepFinished).to.have.been.calledOnce
         expect(this.onTestStepFinished).to.have.been.calledWith({
           index: 0,
-          testCase: { sourceLocation: {line: 1, uri: 'path/to/feature' }},
+          testCase: { sourceLocation: { line: 1, uri: 'path/to/feature' } },
           result: { status: Status.UNDEFINED }
         })
       })
@@ -403,7 +403,7 @@ describe('TestCaseRunner', function() {
         expect(this.onTestStepStarted).to.have.been.calledOnce
         expect(this.onTestStepStarted).to.have.been.calledWith({
           index: 0,
-          testCase: { sourceLocation: {line: 1, uri: 'path/to/feature' }}
+          testCase: { sourceLocation: { line: 1, uri: 'path/to/feature' } }
         })
       })
 
@@ -411,7 +411,7 @@ describe('TestCaseRunner', function() {
         expect(this.onTestStepFinished).to.have.been.calledOnce
         expect(this.onTestStepFinished).to.have.been.calledWith({
           index: 0,
-          testCase: { sourceLocation: {line: 1, uri: 'path/to/feature' }},
+          testCase: { sourceLocation: { line: 1, uri: 'path/to/feature' } },
           result: { status: Status.SKIPPED }
         })
       })
@@ -479,11 +479,11 @@ describe('TestCaseRunner', function() {
         expect(this.onTestStepStarted).to.have.been.calledTwice
         expect(this.onTestStepStarted).to.have.been.calledWith({
           index: 0,
-          testCase: { sourceLocation: { line: 1, uri: 'path/to/feature' }}
+          testCase: { sourceLocation: { line: 1, uri: 'path/to/feature' } }
         })
         expect(this.onTestStepStarted).to.have.been.calledWith({
           index: 1,
-          testCase: { sourceLocation: {line: 1, uri: 'path/to/feature' }}
+          testCase: { sourceLocation: { line: 1, uri: 'path/to/feature' } }
         })
       })
 
@@ -491,12 +491,12 @@ describe('TestCaseRunner', function() {
         expect(this.onTestStepFinished).to.have.been.calledTwice
         expect(this.onTestStepFinished).to.have.been.calledWith({
           index: 0,
-          testCase: { sourceLocation: {line: 1, uri: 'path/to/feature' }},
+          testCase: { sourceLocation: { line: 1, uri: 'path/to/feature' } },
           result: { status: Status.SKIPPED }
         })
         expect(this.onTestStepFinished).to.have.been.calledWith({
           index: 1,
-          testCase: { sourceLocation: {line: 1, uri: 'path/to/feature' }},
+          testCase: { sourceLocation: { line: 1, uri: 'path/to/feature' } },
           result: { status: Status.SKIPPED }
         })
       })
@@ -564,11 +564,11 @@ describe('TestCaseRunner', function() {
         expect(this.onTestStepStarted).to.have.been.calledTwice
         expect(this.onTestStepStarted).to.have.been.calledWith({
           index: 0,
-          testCase: { sourceLocation: {line: 1, uri: 'path/to/feature' }}
+          testCase: { sourceLocation: { line: 1, uri: 'path/to/feature' } }
         })
         expect(this.onTestStepStarted).to.have.been.calledWith({
           index: 1,
-          testCase: { sourceLocation: {line: 1, uri: 'path/to/feature' }}
+          testCase: { sourceLocation: { line: 1, uri: 'path/to/feature' } }
         })
       })
 
@@ -576,12 +576,12 @@ describe('TestCaseRunner', function() {
         expect(this.onTestStepFinished).to.have.been.calledTwice
         expect(this.onTestStepFinished).to.have.been.calledWith({
           index: 0,
-          testCase: { sourceLocation: {line: 1, uri: 'path/to/feature' }},
+          testCase: { sourceLocation: { line: 1, uri: 'path/to/feature' } },
           result: { status: Status.SKIPPED }
         })
         expect(this.onTestStepFinished).to.have.been.calledWith({
           index: 1,
-          testCase: { sourceLocation: {line: 1, uri: 'path/to/feature' }},
+          testCase: { sourceLocation: { line: 1, uri: 'path/to/feature' } },
           result: { status: Status.SKIPPED }
         })
       })

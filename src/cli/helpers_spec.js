@@ -73,7 +73,10 @@ describe('helpers', function() {
         this.tmpDir = await promisify(tmp.dir)()
         this.relativeFeaturePath = path.join('features', 'a.feature')
         const featurePath = path.join(this.tmpDir, 'features', 'a.feature')
-        await fs.outputFile(featurePath, 'Feature: a\nScenario: b\nGiven a step')
+        await fs.outputFile(
+          featurePath,
+          'Feature: a\nScenario: b\nGiven a step'
+        )
         this.result = await getTestCases({
           cwd: this.tmpDir,
           eventBroadcaster: this.eventBroadcaster,
@@ -181,7 +184,10 @@ describe('helpers', function() {
         this.tmpDir = await promisify(tmp.dir)()
         this.relativeFeaturePath = path.join('features', 'a.feature')
         const featurePath = path.join(this.tmpDir, 'features', 'a.feature')
-        await fs.outputFile(featurePath, 'Feature: a\nScenario: b\nGiven a step')
+        await fs.outputFile(
+          featurePath,
+          'Feature: a\nScenario: b\nGiven a step'
+        )
         this.result = await getTestCases({
           cwd: this.tmpDir,
           eventBroadcaster: this.eventBroadcaster,

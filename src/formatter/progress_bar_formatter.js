@@ -33,7 +33,7 @@ export default class ProgressBarFormatter extends Formatter {
     })
   }
 
-  handleStepResult(stepResult) {
+  handleStepResult() {
     this.progressBar.tick()
   }
 
