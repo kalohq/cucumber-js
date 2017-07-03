@@ -4,6 +4,7 @@ import fs from 'mz/fs'
 import Gherkin from 'gherkin'
 import ProfileLoader from './profile_loader'
 import Promise from 'bluebird'
+import path from 'path'
 
 export async function getExpandedArgv({ argv, cwd }) {
   let { options } = ArgvParser.parse(argv)
@@ -16,6 +17,7 @@ export async function getExpandedArgv({ argv, cwd }) {
 }
 
 export async function getTestCases({
+  cwd,
   eventBroadcaster,
   featurePaths,
   scenarioFilter
@@ -23,7 +25,7 @@ export async function getTestCases({
   const result = []
   await Promise.map(featurePaths, async featurePath => {
     const source = await fs.readFile(featurePath, 'utf8')
-    const events = Gherkin.generateEvents(source, featurePath)
+    const events = Gherkin.generateEvents(source, path.relative(cwd, featurePath))
     events.forEach(event => {
       eventBroadcaster.emit(event.type, event)
       if (event.type === 'pickle') {

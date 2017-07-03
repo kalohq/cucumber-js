@@ -19,17 +19,24 @@ export default class TestCaseRunner {
     this.beforeHookDefinitions = this.getBeforeHookDefinitions()
     this.afterHookDefinitions = this.getAfterHookDefinitions()
     this.testStepIndex = 0
-    this.result = { status: Status.PASSED }
+    this.result = {
+      duration: 0,
+      status: Status.PASSED
+    }
   }
 
   emit(name, data) {
-    this.eventBroadcaster.emit(name, {
-      ...data,
-      testCase: {
-        uri: this.testCase.uri,
-        line: this.testCase.pickle.locations[0].line
-      }
-    })
+    var sourceLocation =  {
+      uri: this.testCase.uri,
+      line: this.testCase.pickle.locations[0].line
+    }
+    var eventData = {...data}
+    if (_.startsWith(name, 'test-case')) {
+      eventData.sourceLocation = sourceLocation
+    } else {
+      eventData.testCase = {sourceLocation}
+    }
+    this.eventBroadcaster.emit(name, eventData)
   }
 
   emitPrepared() {
@@ -62,7 +69,7 @@ export default class TestCaseRunner {
   getAfterHookDefinitions() {
     return this.supportCodeLibrary.afterHookDefinitions.filter(
       hookDefinition => {
-        return hookDefinition.appliesToScenario(this.testCase)
+        return hookDefinition.appliesToScenario(this.testCase.pickle)
       }
     )
   }
@@ -70,7 +77,7 @@ export default class TestCaseRunner {
   getBeforeHookDefinitions() {
     return this.supportCodeLibrary.beforeHookDefinitions.filter(
       hookDefinition => {
-        return hookDefinition.appliesToScenario(this.testCase)
+        return hookDefinition.appliesToScenario(this.testCase.pickle)
       }
     )
   }
@@ -78,7 +85,7 @@ export default class TestCaseRunner {
   getStepDefinitions(step) {
     return this.supportCodeLibrary.stepDefinitions.filter(stepDefinition => {
       return stepDefinition.matchesStepName({
-        stepName: step.name,
+        stepName: step.text,
         parameterTypeRegistry: this.supportCodeLibrary.parameterTypeRegistry
       })
     })
@@ -117,8 +124,11 @@ export default class TestCaseRunner {
   async aroundTestStep(runStepFn) {
     this.emit('test-step-started', { index: this.testStepIndex })
     const testStepResult = await runStepFn()
+    if (testStepResult.duration) {
+      this.result.duration += testStepResult.duration
+    }
     if (this.shouldUpdateStatus(testStepResult)) {
-      this.result = _.pick(testStepResult, 'status')
+      this.result.status = testStepResult.status
     }
     this.emit('test-step-finished', {
       index: this.testStepIndex,
@@ -134,6 +144,7 @@ export default class TestCaseRunner {
     await this.runSteps()
     await this.runHooks(this.afterHookDefinitions)
     this.emit('test-case-finished', { result: this.result })
+    return this.result
   }
 
   async runHook(hookDefinition) {

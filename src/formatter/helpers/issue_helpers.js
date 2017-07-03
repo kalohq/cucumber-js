@@ -61,16 +61,21 @@ function formatStep({
 }) {
   const { status } = step.result
   const colorFn = colorFns[status]
-  const pickledStep = stepLineToPickledStepMapping[step.sourceLocation.line]
 
-  const symbol = CHARACTERS[status]
-  const keyword = _.chain(pickledStep.locations)
-    .map(({ line }) => stepLineToKeywordMapping[line])
-    .compact()
-    .first()
-    .value()
-  const identifier = colorFn(symbol + ' ' + keyword + (pickledStep.text || ''))
-  let text = identifier
+  let identifier, pickledStep
+  if (step.sourceLocation) {
+    pickledStep = stepLineToPickledStepMapping[step.sourceLocation.line]
+    const keyword = _.chain(pickledStep.locations)
+      .map(({ line }) => stepLineToKeywordMapping[line])
+      .compact()
+      .first()
+      .value()
+    identifier = keyword + (pickledStep.text || '')
+  } else {
+    identifier = 'Hook'
+  }
+
+  let text = colorFn(CHARACTERS[status] + ' ' + identifier)
 
   const { actionLocation } = step
   if (actionLocation) {
@@ -78,17 +83,19 @@ function formatStep({
   }
   text += '\n'
 
-  _.each(pickledStep.arguments, arg => {
-    let str
-    if (arg.rows) {
-      str = formatDataTable(arg)
-    } else if (arg.content) {
-      str = formatDocString(arg)
-    } else {
-      throw new Error('Unknown argument type: ' + arg)
-    }
-    text += indentString(colorFn(str) + '\n', 4)
-  })
+  if (pickledStep) {
+    _.each(pickledStep.arguments, arg => {
+      let str
+      if (arg.rows) {
+        str = formatDataTable(arg)
+      } else if (arg.content) {
+        str = formatDocString(arg)
+      } else {
+        throw new Error('Unknown argument type: ' + arg)
+      }
+      text += indentString(colorFn(str) + '\n', 4)
+    })
+  }
   return text
 }
 

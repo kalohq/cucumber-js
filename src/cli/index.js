@@ -26,7 +26,7 @@ export default class Cli {
   }
 
   async initializeFormatters({
-    eventManager,
+    eventBroadcaster,
     formatOptions,
     formats,
     supportCodeLibrary
@@ -42,18 +42,17 @@ export default class Cli {
           streamsToClose.push(stream)
         }
         const typeOptions = _.assign(
-          { eventManager, log: ::stream.write, stream, supportCodeLibrary },
+          { eventBroadcaster, log: ::stream.write, stream, supportCodeLibrary },
           formatOptions
         )
         return FormatterBuilder.build(type, typeOptions)
       }
     )
-    const cleanup = function() {
+    return function() {
       return Promise.each(streamsToClose, stream =>
         Promise.promisify(::stream.end)()
       )
     }
-    return { cleanup, formatters }
   }
 
   getSupportCodeLibrary(supportCodePaths) {
@@ -85,6 +84,7 @@ export default class Cli {
     const eventBroadcaster = new EventEmitter()
     const [testCases, cleanup] = await Promise.all([
       getTestCases({
+        cwd: this.cwd,
         eventBroadcaster,
         featurePaths: configuration.featurePaths,
         scenarioFilter

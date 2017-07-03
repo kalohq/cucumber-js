@@ -35,7 +35,7 @@ export default class StepDefinition {
   getInvocationParameters({ step, parameterTypeRegistry }) {
     const cucumberExpression = this.getCucumberExpression(parameterTypeRegistry)
     const stepNameParameters = _.map(
-      cucumberExpression.match(step.name),
+      cucumberExpression.match(step.text),
       'transformedValue'
     )
     const stepArgumentParameters = step.arguments.map(function(arg) {

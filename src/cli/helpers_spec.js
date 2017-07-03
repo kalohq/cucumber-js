@@ -1,8 +1,9 @@
 import { promisify } from 'bluebird'
-import fs from 'mz/fs'
+import fs from 'fs-extra'
 import { getTestCases } from './helpers'
 import tmp from 'tmp'
 import EventEmitter from 'events'
+import path from 'path'
 
 describe('helpers', function() {
   describe('getTestCases', function() {
@@ -22,11 +23,14 @@ describe('helpers', function() {
 
     describe('empty feature', function() {
       beforeEach(async function() {
-        this.tmpFile = await promisify(tmp.file)()
-        await fs.writeFile(this.tmpFile, '')
+        this.tmpDir = await promisify(tmp.dir)()
+        this.relativeFeaturePath = path.join('features', 'a.feature')
+        const featurePath = path.join(this.tmpDir, 'features', 'a.feature')
+        await fs.outputFile(featurePath, '')
         this.result = await getTestCases({
+          cwd: this.tmpDir,
           eventBroadcaster: this.eventBroadcaster,
-          featurePaths: [this.tmpFile]
+          featurePaths: [featurePath]
         })
       })
 
@@ -40,7 +44,7 @@ describe('helpers', function() {
           data: '',
           media: { encoding: 'utf-8', type: 'text/vnd.cucumber.gherkin+plain' },
           type: 'source',
-          uri: this.tmpFile
+          uri: this.relativeFeaturePath
         })
       })
 
@@ -53,7 +57,7 @@ describe('helpers', function() {
             type: 'GherkinDocument'
           },
           type: 'gherkin-document',
-          uri: this.tmpFile
+          uri: this.relativeFeaturePath
         })
       })
 
@@ -66,14 +70,14 @@ describe('helpers', function() {
 
     describe('feature with scenario that does not match the filter', function() {
       beforeEach(async function() {
-        this.tmpFile = await promisify(tmp.file)()
-        await fs.writeFile(
-          this.tmpFile,
-          'Feature: a\nScenario: b\nGiven a step'
-        )
+        this.tmpDir = await promisify(tmp.dir)()
+        this.relativeFeaturePath = path.join('features', 'a.feature')
+        const featurePath = path.join(this.tmpDir, 'features', 'a.feature')
+        await fs.outputFile(featurePath, 'Feature: a\nScenario: b\nGiven a step')
         this.result = await getTestCases({
+          cwd: this.tmpDir,
           eventBroadcaster: this.eventBroadcaster,
-          featurePaths: [this.tmpFile],
+          featurePaths: [featurePath],
           scenarioFilter: createMock({ matches: false })
         })
       })
@@ -88,7 +92,7 @@ describe('helpers', function() {
           data: 'Feature: a\nScenario: b\nGiven a step',
           media: { encoding: 'utf-8', type: 'text/vnd.cucumber.gherkin+plain' },
           type: 'source',
-          uri: this.tmpFile
+          uri: this.relativeFeaturePath
         })
       })
 
@@ -128,7 +132,7 @@ describe('helpers', function() {
             type: 'GherkinDocument'
           },
           type: 'gherkin-document',
-          uri: this.tmpFile
+          uri: this.relativeFeaturePath
         })
       })
 
@@ -149,7 +153,7 @@ describe('helpers', function() {
             tags: []
           },
           type: 'pickle',
-          uri: this.tmpFile
+          uri: this.relativeFeaturePath
         })
         expect(this.onPickleAccepted).not.to.have.been.called
         expect(this.onPickleRejected).to.have.been.calledOnce
@@ -167,21 +171,21 @@ describe('helpers', function() {
             ],
             tags: []
           },
-          uri: this.tmpFile
+          uri: this.relativeFeaturePath
         })
       })
     })
 
     describe('feature with scenario that matches the filter', function() {
       beforeEach(async function() {
-        this.tmpFile = await promisify(tmp.file)()
-        await fs.writeFile(
-          this.tmpFile,
-          'Feature: a\nScenario: b\nGiven a step'
-        )
+        this.tmpDir = await promisify(tmp.dir)()
+        this.relativeFeaturePath = path.join('features', 'a.feature')
+        const featurePath = path.join(this.tmpDir, 'features', 'a.feature')
+        await fs.outputFile(featurePath, 'Feature: a\nScenario: b\nGiven a step')
         this.result = await getTestCases({
+          cwd: this.tmpDir,
           eventBroadcaster: this.eventBroadcaster,
-          featurePaths: [this.tmpFile],
+          featurePaths: [featurePath],
           scenarioFilter: createMock({ matches: true })
         })
       })
@@ -202,7 +206,7 @@ describe('helpers', function() {
               ],
               tags: []
             },
-            uri: this.tmpFile
+            uri: this.relativeFeaturePath
           }
         ])
       })
@@ -213,7 +217,7 @@ describe('helpers', function() {
           data: 'Feature: a\nScenario: b\nGiven a step',
           media: { encoding: 'utf-8', type: 'text/vnd.cucumber.gherkin+plain' },
           type: 'source',
-          uri: this.tmpFile
+          uri: this.relativeFeaturePath
         })
       })
 
@@ -253,7 +257,7 @@ describe('helpers', function() {
             type: 'GherkinDocument'
           },
           type: 'gherkin-document',
-          uri: this.tmpFile
+          uri: this.relativeFeaturePath
         })
       })
 
@@ -274,7 +278,7 @@ describe('helpers', function() {
             tags: []
           },
           type: 'pickle',
-          uri: this.tmpFile
+          uri: this.relativeFeaturePath
         })
         expect(this.onPickleAccepted).to.have.been.calledOnce
         expect(this.onPickleAccepted).to.have.been.calledWith({
@@ -291,7 +295,7 @@ describe('helpers', function() {
             ],
             tags: []
           },
-          uri: this.tmpFile
+          uri: this.relativeFeaturePath
         })
         expect(this.onPickleRejected).not.to.have.been.called
       })

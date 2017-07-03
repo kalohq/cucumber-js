@@ -1,6 +1,7 @@
 import Status from '../status'
 import StackTraceFilter from './stack_trace_filter'
 import TestCaseRunner from './test_case_runner'
+import Promise from 'bluebird'
 
 export default class Runtime {
   // options - {dryRun, failFast, filterStacktraces, strict}
@@ -10,13 +11,9 @@ export default class Runtime {
     this.stackTraceFilter = new StackTraceFilter()
     this.supportCodeLibrary = supportCodeLibrary
     this.testCases = testCases || []
-    this.eventBroadcaster.on('test-case-finished', ::this.onTestCaseFinished)
-    this.success = true
-  }
-
-  onTestCaseFinished({ result }) {
-    if (result.status !== Status.PASSED) {
-      this.success = false
+    this.result = {
+      duration: 0,
+      success: true
     }
   }
 
@@ -27,7 +24,13 @@ export default class Runtime {
       supportCodeLibrary: this.supportCodeLibrary,
       testCase
     })
-    await testCaseRunner.run()
+    const testCaseResult = await testCaseRunner.run()
+    if (testCaseResult.duration) {
+      this.result.duration += testCaseResult.duration
+    }
+    if (testCaseResult.status !== Status.PASSED) {
+      this.result.success = false
+    }
   }
 
   async start() {
@@ -36,10 +39,10 @@ export default class Runtime {
     }
     this.eventBroadcaster.emit('test-run-started')
     await Promise.each(this.testCases, ::this.runTestCase)
-    this.eventBroadcaster.emit('test-run-finished')
+    this.eventBroadcaster.emit('test-run-finished', {result: this.result})
     if (this.options.filterStacktraces) {
       this.stackTraceFilter.unfilter()
     }
-    return this.success
+    return this.result.success
   }
 }
