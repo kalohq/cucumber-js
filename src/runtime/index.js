@@ -2,6 +2,7 @@ import Status from '../status'
 import StackTraceFilter from './stack_trace_filter'
 import TestCaseRunner from './test_case_runner'
 import Promise from 'bluebird'
+import _ from 'lodash'
 
 export default class Runtime {
   // options - {dryRun, failFast, filterStacktraces, strict}
@@ -18,17 +19,20 @@ export default class Runtime {
   }
 
   async runTestCase(testCase) {
+    const skip =
+      this.options.dryRun || (this.options.failFast && !this.result.success)
     const testCaseRunner = new TestCaseRunner({
       eventBroadcaster: this.eventBroadcaster,
-      options: this.options,
+      skip,
       supportCodeLibrary: this.supportCodeLibrary,
-      testCase
+      testCase,
+      worldParameters: this.options.worldParameters
     })
     const testCaseResult = await testCaseRunner.run()
     if (testCaseResult.duration) {
       this.result.duration += testCaseResult.duration
     }
-    if (testCaseResult.status !== Status.PASSED) {
+    if (this.shouldCauseFailure(testCaseResult.status)) {
       this.result.success = false
     }
   }
@@ -44,5 +48,13 @@ export default class Runtime {
       this.stackTraceFilter.unfilter()
     }
     return this.result.success
+  }
+
+  shouldCauseFailure(status) {
+    return (
+      _.includes([Status.AMBIGUOUS, Status.FAILED], status) ||
+      (_.includes([Status.PENDING, Status.UNDEFINED], status) &&
+        this.options.strict)
+    )
   }
 }

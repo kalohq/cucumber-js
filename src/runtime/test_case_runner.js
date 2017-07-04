@@ -6,22 +6,28 @@ import Status from '../status'
 import StepRunner from './step_runner'
 
 export default class TestCaseRunner {
-  constructor({ eventBroadcaster, options, testCase, supportCodeLibrary }) {
+  constructor({
+    eventBroadcaster,
+    skip,
+    testCase,
+    supportCodeLibrary,
+    worldParameters
+  }) {
     this.attachmentManager = new AttachmentManager()
     this.eventBroadcaster = eventBroadcaster
-    this.options = options
+    this.skip = skip
     this.testCase = testCase
     this.supportCodeLibrary = supportCodeLibrary
     this.world = new supportCodeLibrary.World({
       attach: ::this.attachmentManager.create,
-      parameters: options.worldParameters
+      parameters: worldParameters
     })
     this.beforeHookDefinitions = this.getBeforeHookDefinitions()
     this.afterHookDefinitions = this.getAfterHookDefinitions()
     this.testStepIndex = 0
     this.result = {
       duration: 0,
-      status: Status.PASSED
+      status: this.skip ? Status.SKIPPED : Status.PASSED
     }
   }
 
@@ -110,11 +116,14 @@ export default class TestCaseRunner {
   shouldUpdateStatus(testStepResult) {
     switch (testStepResult.status) {
       case Status.FAILED:
-        return true
       case Status.AMBIGUOUS:
       case Status.PENDING:
-      case Status.SKIPPED:
       case Status.UNDEFINED:
+        return (
+          this.result.status === Status.PASSED ||
+          this.result.status === Status.SKIPPED
+        )
+      case Status.SKIPPED:
         return this.result.status === Status.PASSED
       default:
         return false
@@ -148,7 +157,7 @@ export default class TestCaseRunner {
   }
 
   async runHook(hookDefinition) {
-    if (this.options.dryRun) {
+    if (this.skip) {
       return { status: Status.SKIPPED }
     } else {
       return await this.invokeStep(null, hookDefinition)
@@ -172,7 +181,7 @@ export default class TestCaseRunner {
         exception: getAmbiguousStepException(stepDefinitions),
         status: Status.AMBIGUOUS
       }
-    } else if (this.options.dryRun || this.isSkippingSteps()) {
+    } else if (this.skip || this.isSkippingSteps()) {
       return { status: Status.SKIPPED }
     } else {
       return await this.invokeStep(step, stepDefinitions[0])

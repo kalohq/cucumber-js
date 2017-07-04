@@ -110,6 +110,13 @@ function formatStep({
   return text
 }
 
+export function isIssue(status) {
+  return _.includes(
+    [Status.AMBIGUOUS, Status.FAILED, Status.PENDING, Status.UNDEFINED],
+    status
+  )
+}
+
 export function formatIssue({
   colorFns,
   gherkinDocument,

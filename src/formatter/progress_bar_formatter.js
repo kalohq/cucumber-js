@@ -1,16 +1,7 @@
-import _ from 'lodash'
-import { formatIssue, formatSummary } from './helpers'
-import Status from '../status'
+import { formatIssue, formatSummary, isIssue } from './helpers'
 import Formatter from './'
 import ProgressBar from 'progress'
 import TestCaseCollector from './helpers/test_case_collector'
-
-const statusToReport = [
-  Status.AMBIGUOUS,
-  Status.FAILED,
-  Status.PENDING,
-  Status.UNDEFINED
-]
 
 // Inspired by https://github.com/thekompanee/fuubar and https://github.com/martinciu/fuubar-cucumber
 export default class ProgressBarFormatter extends Formatter {
@@ -51,7 +42,7 @@ export default class ProgressBarFormatter extends Formatter {
   }
 
   logErrorIfNeeded({ sourceLocation, result }) {
-    if (_.includes(statusToReport, result.status)) {
+    if (isIssue(result.status)) {
       this.issueCount += 1
       const {
         gherkinDocument,

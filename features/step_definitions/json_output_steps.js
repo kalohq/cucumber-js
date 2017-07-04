@@ -46,7 +46,10 @@ defineSupportCode(({ Then }) => {
   })
 
   Then(/^the step "([^"]*)" failed with:$/, function(name, errorMessage) {
-    const step = findStep(this.lastRun.jsonOutput, _.identity, ['name', name])
+    const step = findStep({
+      features: this.lastRun.jsonOutput,
+      stepPredicate: ['name', name]
+    })
     expect(step.result.status).to.eql('failed')
     expect(step.result.error_message).to.include(errorMessage)
   })
@@ -62,15 +65,18 @@ defineSupportCode(({ Then }) => {
   })
 
   Then(/^the step "([^"]*)" has status "([^"]*)"$/, function(name, status) {
-    const step = findStep(this.lastRun.jsonOutput, _.identity, ['name', name])
+    const step = findStep({
+      features: this.lastRun.jsonOutput,
+      stepPredicate: ['name', name]
+    })
     expect(step.result.status).to.eql(status)
   })
 
   Then(/^the "([^"]*)" hook has status "([^"]*)"$/, function(keyword, status) {
-    const step = findStep(this.lastRun.jsonOutput, _.identity, [
-      'keyword',
-      keyword
-    ])
+    const step = findStep({
+      features: this.lastRun.jsonOutput,
+      stepPredicate: ['keyword', keyword]
+    })
     expect(step.result.status).to.eql(status)
   })
 
@@ -78,7 +84,10 @@ defineSupportCode(({ Then }) => {
     name,
     table
   ) {
-    const step = findStep(this.lastRun.jsonOutput, _.identity, ['name', name])
+    const step = findStep({
+      features: this.lastRun.jsonOutput,
+      stepPredicate: ['name', name]
+    })
     const attachment = _.mapKeys(table.hashes()[0], (v, k) => _.snakeCase(k))
     expect(step.embeddings[0]).to.eql(attachment)
   })
@@ -87,10 +96,10 @@ defineSupportCode(({ Then }) => {
     keyword,
     table
   ) {
-    const hook = findStep(this.lastRun.jsonOutput, _.identity, [
-      'keyword',
-      keyword
-    ])
+    const hook = findStep({
+      features: this.lastRun.jsonOutput,
+      stepPredicate: ['keyword', keyword]
+    })
     const attachment = _.mapKeys(table.hashes()[0], (v, k) => _.snakeCase(k))
     expect(hook.embeddings[0]).to.eql(attachment)
   })
@@ -116,13 +125,13 @@ defineSupportCode(({ Then }) => {
     /^the (first|second) scenario has the step "([^"]*)" with the doc string$/,
     function(cardinal, name, docString) {
       const scenarioIndex = cardinal === 'first' ? 0 : 1
-      const step = findStep(
-        this.lastRun.jsonOutput,
-        function(element, index) {
+      const step = findStep({
+        features: this.lastRun.jsonOutput,
+        scenarioPredicate(element, index) {
           return index === scenarioIndex
         },
-        ['name', name]
-      )
+        stepPredicate: ['name', name]
+      })
       expect(step.arguments[0].content).to.eql(docString)
     }
   )
@@ -131,13 +140,13 @@ defineSupportCode(({ Then }) => {
     /^the (first|second) scenario has the step "([^"]*)" with the table$/,
     function(cardinal, name, table) {
       const scenarioIndex = cardinal === 'first' ? 0 : 1
-      const step = findStep(
-        this.lastRun.jsonOutput,
-        function(element, index) {
+      const step = findStep({
+        features: this.lastRun.jsonOutput,
+        scenarioPredicate(element, index) {
           return index === scenarioIndex
         },
-        ['name', name]
-      )
+        stepPredicate: ['name', name]
+      })
       const expected = table.raw().map(function(row) {
         return { cells: row }
       })
@@ -150,11 +159,11 @@ defineSupportCode(({ Then }) => {
     name
   ) {
     const scenarioIndex = cardinal === 'first' ? 0 : 1
-    const scenario = findScenario(this.lastRun.jsonOutput, function(
-      element,
-      index
-    ) {
-      return index === scenarioIndex
+    const scenario = findScenario({
+      features: this.lastRun.jsonOutput,
+      scenarioPredicate(element, index) {
+        return index === scenarioIndex
+      }
     })
     expect(scenario.name).to.eql(name)
   })
