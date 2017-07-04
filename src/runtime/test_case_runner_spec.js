@@ -32,7 +32,6 @@ describe('TestCaseRunner', function() {
       parameterTypeRegistry: {},
       World() {}
     }
-    this.options = {}
     sinon.stub(StepRunner, 'run')
   })
 
@@ -45,7 +44,7 @@ describe('TestCaseRunner', function() {
       beforeEach(async function() {
         const scenarioRunner = new TestCaseRunner({
           eventBroadcaster: this.eventBroadcaster,
-          options: this.options,
+          skip: false,
           testCase: this.testCase,
           supportCodeLibrary: this.supportCodeLibrary
         })
@@ -93,7 +92,7 @@ describe('TestCaseRunner', function() {
         this.testCase.pickle.steps = [this.step]
         const scenarioRunner = new TestCaseRunner({
           eventBroadcaster: this.eventBroadcaster,
-          options: this.options,
+          skip: false,
           testCase: this.testCase,
           supportCodeLibrary: this.supportCodeLibrary
         })
@@ -165,7 +164,7 @@ describe('TestCaseRunner', function() {
         this.testCase.pickle.steps = [this.step]
         const scenarioRunner = new TestCaseRunner({
           eventBroadcaster: this.eventBroadcaster,
-          options: this.options,
+          skip: false,
           testCase: this.testCase,
           supportCodeLibrary: this.supportCodeLibrary
         })
@@ -247,7 +246,7 @@ describe('TestCaseRunner', function() {
         this.testCase.pickle.steps = [this.step]
         const scenarioRunner = new TestCaseRunner({
           eventBroadcaster: this.eventBroadcaster,
-          options: this.options,
+          skip: false,
           testCase: this.testCase,
           supportCodeLibrary: this.supportCodeLibrary
         })
@@ -311,7 +310,7 @@ describe('TestCaseRunner', function() {
         this.testCase.pickle.steps = [this.step]
         const scenarioRunner = new TestCaseRunner({
           eventBroadcaster: this.eventBroadcaster,
-          options: this.options,
+          skip: false,
           testCase: this.testCase,
           supportCodeLibrary: this.supportCodeLibrary
         })
@@ -359,9 +358,8 @@ describe('TestCaseRunner', function() {
       })
     })
 
-    describe('with a step in dry run mode', function() {
+    describe('with a step when skipping', function() {
       beforeEach(async function() {
-        this.options.dryRun = true
         this.step = { uri: 'path/to/feature', locations: [{ line: 2 }] }
         const stepDefinition = {
           uri: 'path/to/steps',
@@ -372,7 +370,7 @@ describe('TestCaseRunner', function() {
         this.testCase.pickle.steps = [this.step]
         const scenarioRunner = new TestCaseRunner({
           eventBroadcaster: this.eventBroadcaster,
-          options: this.options,
+          skip: true,
           testCase: this.testCase,
           supportCodeLibrary: this.supportCodeLibrary
         })
@@ -425,9 +423,8 @@ describe('TestCaseRunner', function() {
       })
     })
 
-    describe('with an before hook and step in dry run mode', function() {
+    describe('with an before hook and step when skipping', function() {
       beforeEach(async function() {
-        this.options.dryRun = true
         const hookDefinition = new HookDefinition({
           code() {
             throw new Error('error')
@@ -447,7 +444,7 @@ describe('TestCaseRunner', function() {
         this.testCase.pickle.steps = [this.step]
         const scenarioRunner = new TestCaseRunner({
           eventBroadcaster: this.eventBroadcaster,
-          options: this.options,
+          skip: true,
           testCase: this.testCase,
           supportCodeLibrary: this.supportCodeLibrary
         })
@@ -510,9 +507,8 @@ describe('TestCaseRunner', function() {
       })
     })
 
-    describe('with an after hook and step in dry run mode', function() {
+    describe('with an after hook when skipping', function() {
       beforeEach(async function() {
-        this.options.dryRun = true
         const hookDefinition = new HookDefinition({
           code() {
             throw new Error('error')
@@ -532,7 +528,7 @@ describe('TestCaseRunner', function() {
         this.testCase.pickle.steps = [this.step]
         const scenarioRunner = new TestCaseRunner({
           eventBroadcaster: this.eventBroadcaster,
-          options: this.options,
+          skip: true,
           testCase: this.testCase,
           supportCodeLibrary: this.supportCodeLibrary
         })

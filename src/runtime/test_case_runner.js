@@ -117,16 +117,18 @@ export default class TestCaseRunner {
     switch (testStepResult.status) {
       case Status.FAILED:
       case Status.AMBIGUOUS:
+        return (
+          this.result.status !== Status.FAILED ||
+          this.result.status !== Status.AMBIGUOUS
+        )
       case Status.PENDING:
       case Status.UNDEFINED:
         return (
           this.result.status === Status.PASSED ||
           this.result.status === Status.SKIPPED
         )
-      case Status.SKIPPED:
-        return this.result.status === Status.PASSED
       default:
-        return false
+        return true
     }
   }
 
@@ -181,7 +183,7 @@ export default class TestCaseRunner {
         exception: getAmbiguousStepException(stepDefinitions),
         status: Status.AMBIGUOUS
       }
-    } else if (this.skip || this.isSkippingSteps()) {
+    } else if (this.isSkippingSteps()) {
       return { status: Status.SKIPPED }
     } else {
       return await this.invokeStep(step, stepDefinitions[0])
