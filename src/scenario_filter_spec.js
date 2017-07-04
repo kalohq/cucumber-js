@@ -5,10 +5,12 @@ describe('ScenarioFilter', function() {
   describe('matches', function() {
     beforeEach(function() {
       this.projectPath = path.resolve('path', 'to', 'project')
-      this.scenario = {
-        lines: [],
-        name: '',
-        tags: [],
+      this.input = {
+        pickle: {
+          locations: [],
+          name: '',
+          tags: []
+        },
         uri: ''
       }
     })
@@ -24,7 +26,7 @@ describe('ScenarioFilter', function() {
       })
 
       it('returns true', function() {
-        expect(this.scenarioFilter.matches(this.scenario)).to.be.true
+        expect(this.scenarioFilter.matches(this.input)).to.be.true
       })
     })
 
@@ -40,36 +42,36 @@ describe('ScenarioFilter', function() {
 
       describe('scenario in feature without line specified', function() {
         beforeEach(function() {
-          this.scenario.uri = path.join(this.projectPath, 'a.feature')
+          this.input.uri = path.join(this.projectPath, 'a.feature')
         })
 
         it('returns true', function() {
-          expect(this.scenarioFilter.matches(this.scenario)).to.be.true
+          expect(this.scenarioFilter.matches(this.input)).to.be.true
         })
       })
 
       describe('scenario in feature with line specified', function() {
         beforeEach(function() {
-          this.scenario.uri = path.join(this.projectPath, 'b.feature')
+          this.input.uri = path.join(this.projectPath, 'b.feature')
         })
 
         describe('scenario line matches', function() {
           beforeEach(function() {
-            this.scenario.lines = [1]
+            this.input.pickle.locations = [{ line: 1 }]
           })
 
           it('returns true', function() {
-            expect(this.scenarioFilter.matches(this.scenario)).to.be.true
+            expect(this.scenarioFilter.matches(this.input)).to.be.true
           })
         })
 
         describe('scenario line does not match', function() {
           beforeEach(function() {
-            this.scenario.lines = [3]
+            this.input.pickle.locations = [{ line: 3 }]
           })
 
           it('returns false', function() {
-            expect(this.scenarioFilter.matches(this.scenario)).to.be.false
+            expect(this.scenarioFilter.matches(this.input)).to.be.false
           })
         })
       })
@@ -88,21 +90,21 @@ describe('ScenarioFilter', function() {
 
         describe('scenario name matches A', function() {
           beforeEach(function() {
-            this.scenario.name = 'nameA descriptionA'
+            this.input.pickle.name = 'nameA descriptionA'
           })
 
           it('returns true', function() {
-            expect(this.scenarioFilter.matches(this.scenario)).to.be.true
+            expect(this.scenarioFilter.matches(this.input)).to.be.true
           })
         })
 
         describe('scenario name does not match A', function() {
           beforeEach(function() {
-            this.scenario.name = 'nameB descriptionB'
+            this.input.pickle.name = 'nameB descriptionB'
           })
 
           it('returns false', function() {
-            expect(this.scenarioFilter.matches(this.scenario)).to.be.false
+            expect(this.scenarioFilter.matches(this.input)).to.be.false
           })
         })
       })
@@ -119,31 +121,31 @@ describe('ScenarioFilter', function() {
 
         describe('scenario name matches A', function() {
           beforeEach(function() {
-            this.scenario.name = 'nameA descriptionA'
+            this.input.pickle.name = 'nameA descriptionA'
           })
 
           it('returns true', function() {
-            expect(this.scenarioFilter.matches(this.scenario)).to.be.true
+            expect(this.scenarioFilter.matches(this.input)).to.be.true
           })
         })
 
         describe('scenario name matches B', function() {
           beforeEach(function() {
-            this.scenario.name = 'nameB descriptionB'
+            this.input.pickle.name = 'nameB descriptionB'
           })
 
           it('returns true', function() {
-            expect(this.scenarioFilter.matches(this.scenario)).to.be.true
+            expect(this.scenarioFilter.matches(this.input)).to.be.true
           })
         })
 
         describe('scenario name does not match A or B', function() {
           beforeEach(function() {
-            this.scenario.name = 'nameC descriptionC'
+            this.input.pickle.name = 'nameC descriptionC'
           })
 
           it('returns false', function() {
-            expect(this.scenarioFilter.matches(this.scenario)).to.be.false
+            expect(this.scenarioFilter.matches(this.input)).to.be.false
           })
         })
       })
@@ -162,17 +164,17 @@ describe('ScenarioFilter', function() {
 
         describe('scenario has tag A', function() {
           beforeEach(function() {
-            this.scenario.tags = [{ name: '@tagA' }]
+            this.input.pickle.tags = [{ name: '@tagA' }]
           })
 
           it('returns true', function() {
-            expect(this.scenarioFilter.matches(this.scenario)).to.be.true
+            expect(this.scenarioFilter.matches(this.input)).to.be.true
           })
         })
 
         describe('scenario does not have tag A', function() {
           it('returns false', function() {
-            expect(this.scenarioFilter.matches(this.scenario)).to.be.false
+            expect(this.scenarioFilter.matches(this.input)).to.be.false
           })
         })
       })
@@ -189,17 +191,17 @@ describe('ScenarioFilter', function() {
 
         describe('scenario has tag A', function() {
           beforeEach(function() {
-            this.scenario.tags = [{ name: '@tagA' }]
+            this.input.pickle.tags = [{ name: '@tagA' }]
           })
 
           it('returns false', function() {
-            expect(this.scenarioFilter.matches(this.scenario)).to.be.false
+            expect(this.scenarioFilter.matches(this.input)).to.be.false
           })
         })
 
         describe('scenario does not have tag A', function() {
           it('returns true', function() {
-            expect(this.scenarioFilter.matches(this.scenario)).to.be.true
+            expect(this.scenarioFilter.matches(this.input)).to.be.true
           })
         })
       })
@@ -216,37 +218,37 @@ describe('ScenarioFilter', function() {
 
         describe('scenario has tag A and B', function() {
           beforeEach(function() {
-            this.scenario.tags = [{ name: '@tagA' }, { name: '@tagB' }]
+            this.input.pickle.tags = [{ name: '@tagA' }, { name: '@tagB' }]
           })
 
           it('returns true', function() {
-            expect(this.scenarioFilter.matches(this.scenario)).to.be.true
+            expect(this.scenarioFilter.matches(this.input)).to.be.true
           })
         })
 
         describe('scenario has tag A, but not B', function() {
           beforeEach(function() {
-            this.scenario.tags = [{ name: '@tagA' }]
+            this.input.pickle.tags = [{ name: '@tagA' }]
           })
 
           it('returns false', function() {
-            expect(this.scenarioFilter.matches(this.scenario)).to.be.false
+            expect(this.scenarioFilter.matches(this.input)).to.be.false
           })
         })
 
         describe('scenario has tag B, but not A', function() {
           beforeEach(function() {
-            this.scenario.tags = [{ name: '@tagB' }]
+            this.input.pickle.tags = [{ name: '@tagB' }]
           })
 
           it('returns false', function() {
-            expect(this.scenarioFilter.matches(this.scenario)).to.be.false
+            expect(this.scenarioFilter.matches(this.input)).to.be.false
           })
         })
 
         describe('scenario does have tag A or B', function() {
           it('returns false', function() {
-            expect(this.scenarioFilter.matches(this.scenario)).to.be.false
+            expect(this.scenarioFilter.matches(this.input)).to.be.false
           })
         })
       })
@@ -263,37 +265,37 @@ describe('ScenarioFilter', function() {
 
         describe('scenario has tag A and B', function() {
           beforeEach(function() {
-            this.scenario.tags = [{ name: '@tagA' }, { name: '@tagB' }]
+            this.input.pickle.tags = [{ name: '@tagA' }, { name: '@tagB' }]
           })
 
           it('returns true', function() {
-            expect(this.scenarioFilter.matches(this.scenario)).to.be.true
+            expect(this.scenarioFilter.matches(this.input)).to.be.true
           })
         })
 
         describe('scenario has tag A, but not B', function() {
           beforeEach(function() {
-            this.scenario.tags = [{ name: '@tagA' }]
+            this.input.pickle.tags = [{ name: '@tagA' }]
           })
 
           it('returns true', function() {
-            expect(this.scenarioFilter.matches(this.scenario)).to.be.true
+            expect(this.scenarioFilter.matches(this.input)).to.be.true
           })
         })
 
         describe('scenario has tag B, but not A', function() {
           beforeEach(function() {
-            this.scenario.tags = [{ name: '@tagB' }]
+            this.input.pickle.tags = [{ name: '@tagB' }]
           })
 
           it('returns true', function() {
-            expect(this.scenarioFilter.matches(this.scenario)).to.be.true
+            expect(this.scenarioFilter.matches(this.input)).to.be.true
           })
         })
 
         describe('scenario does have tag A or B', function() {
           it('returns false', function() {
-            expect(this.scenarioFilter.matches(this.scenario)).to.be.false
+            expect(this.scenarioFilter.matches(this.input)).to.be.false
           })
         })
       })
@@ -312,14 +314,14 @@ describe('ScenarioFilter', function() {
             names: ['nameA'],
             tagExpressions: ['@tagA']
           })
-          this.scenario.lines = [1]
-          this.scenario.name = 'nameA descriptionA'
-          this.scenario.tags = [{ name: '@tagA' }]
-          this.scenario.uri = this.scenarioPath
+          this.input.pickle.locations = [{ line: 1 }]
+          this.input.pickle.name = 'nameA descriptionA'
+          this.input.pickle.tags = [{ name: '@tagA' }]
+          this.input.uri = this.scenarioPath
         })
 
         it('returns true', function() {
-          expect(this.scenarioFilter.matches(this.scenario)).to.be.true
+          expect(this.scenarioFilter.matches(this.input)).to.be.true
         })
       })
 
@@ -331,12 +333,12 @@ describe('ScenarioFilter', function() {
             names: ['nameA'],
             tagExpressions: ['tagA']
           })
-          this.scenario.lines = [1]
-          this.scenario.uri = this.scenarioPath
+          this.input.pickle.locations = [{ line: 1 }]
+          this.input.uri = this.scenarioPath
         })
 
         it('returns false', function() {
-          expect(this.scenarioFilter.matches(this.scenario)).to.be.false
+          expect(this.scenarioFilter.matches(this.input)).to.be.false
         })
       })
 
@@ -348,12 +350,12 @@ describe('ScenarioFilter', function() {
             names: ['nameA'],
             tagExpression: '@tagA'
           })
-          this.scenario.lines = [3]
-          this.scenario.uri = this.scenarioPath
+          this.input.pickle.locations = [{ line: 1 }]
+          this.input.uri = this.scenarioPath
         })
 
         it('returns false', function() {
-          expect(this.scenarioFilter.matches(this.scenario)).to.be.false
+          expect(this.scenarioFilter.matches(this.input)).to.be.false
         })
       })
     })

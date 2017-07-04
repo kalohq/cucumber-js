@@ -33,7 +33,7 @@ export async function getTestCases({
       eventBroadcaster.emit(event.type, event)
       if (event.type === 'pickle') {
         const { pickle, uri } = event
-        if (scenarioFilter.matches(pickle)) {
+        if (scenarioFilter.matches({ pickle, uri })) {
           eventBroadcaster.emit('pickle-accepted', { pickle, uri })
           result.push({ pickle, uri })
         } else {

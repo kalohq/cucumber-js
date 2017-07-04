@@ -75,7 +75,7 @@ export default class TestCaseRunner {
   getAfterHookDefinitions() {
     return this.supportCodeLibrary.afterHookDefinitions.filter(
       hookDefinition => {
-        return hookDefinition.appliesToScenario(this.testCase.pickle)
+        return hookDefinition.appliesToTestCase(this.testCase)
       }
     )
   }
@@ -83,7 +83,7 @@ export default class TestCaseRunner {
   getBeforeHookDefinitions() {
     return this.supportCodeLibrary.beforeHookDefinitions.filter(
       hookDefinition => {
-        return hookDefinition.appliesToScenario(this.testCase.pickle)
+        return hookDefinition.appliesToTestCase(this.testCase)
       }
     )
   }
@@ -121,14 +121,11 @@ export default class TestCaseRunner {
           this.result.status !== Status.FAILED ||
           this.result.status !== Status.AMBIGUOUS
         )
-      case Status.PENDING:
-      case Status.UNDEFINED:
+      default:
         return (
           this.result.status === Status.PASSED ||
           this.result.status === Status.SKIPPED
         )
-      default:
-        return true
     }
   }
 

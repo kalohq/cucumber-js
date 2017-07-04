@@ -1,10 +1,12 @@
 import HookDefinition from './hook_definition'
 
 describe('HookDefinition', function() {
-  describe('appliesToScenario', function() {
+  describe('appliesToTestCase', function() {
     beforeEach(function() {
-      this.scenario = {
-        tags: [],
+      this.input = {
+        pickle: {
+          tags: []
+        },
         uri: ''
       }
     })
@@ -15,20 +17,20 @@ describe('HookDefinition', function() {
       })
 
       it('returns true', function() {
-        expect(this.hookDefinition.appliesToScenario(this.scenario)).to.be.true
+        expect(this.hookDefinition.appliesToTestCase(this.input)).to.be.true
       })
     })
 
     describe('tags match', function() {
       beforeEach(function() {
-        this.scenario.tags = [{ name: '@tagA' }]
+        this.input.pickle.tags = [{ name: '@tagA' }]
         this.hookDefinition = new HookDefinition({
           options: { tags: '@tagA' }
         })
       })
 
       it('returns true', function() {
-        expect(this.hookDefinition.appliesToScenario(this.scenario)).to.be.true
+        expect(this.hookDefinition.appliesToTestCase(this.input)).to.be.true
       })
     })
 
@@ -40,7 +42,7 @@ describe('HookDefinition', function() {
       })
 
       it('returns false', function() {
-        expect(this.hookDefinition.appliesToScenario(this.scenario)).to.be.false
+        expect(this.hookDefinition.appliesToTestCase(this.input)).to.be.false
       })
     })
   })

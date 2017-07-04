@@ -9,8 +9,8 @@ export default class HookDefinition extends StepDefinition {
     })
   }
 
-  appliesToScenario(scenario) {
-    return this.scenarioFilter.matches(scenario)
+  appliesToTestCase({ pickle, uri }) {
+    return this.scenarioFilter.matches({ pickle, uri })
   }
 
   getInvalidCodeLengthMessage() {
