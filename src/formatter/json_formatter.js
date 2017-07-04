@@ -2,7 +2,7 @@ import _ from 'lodash'
 import Formatter from './'
 import Status from '../status'
 import util from 'util'
-import { TestCaseCollector } from './helpers'
+import { formatLocation, TestCaseCollector } from './helpers'
 
 export default class JsonFormatter extends Formatter {
   constructor(options) {
@@ -28,21 +28,24 @@ export default class JsonFormatter extends Formatter {
 
   formatDataTable(dataTable) {
     return {
-      rows: dataTable.raw().map(function(row) {
-        return { cells: row }
+      rows: dataTable.rows.map(row => {
+        return { cells: _.map(row.cells, 'value') }
       })
     }
   }
 
   formatDocString(docString) {
-    return _.pick(docString, ['content', 'contentType', 'line'])
+    return {
+      content: docString.content,
+      line: docString.location.line
+    }
   }
 
   formatStepArguments(stepArguments) {
     return _.map(stepArguments, arg => {
-      if (arg instanceof DataTable) {
+      if (arg.hasOwnProperty('rows')) {
         return this.formatDataTable(arg)
-      } else if (arg instanceof DocString) {
+      } else if (arg.hasOwnProperty('content')) {
         return this.formatDocString(arg)
       } else {
         throw new Error(`Unknown argument type: ${util.inspect(arg)}`)
@@ -82,7 +85,7 @@ export default class JsonFormatter extends Formatter {
           scenarioLineToDescriptionMapping
         })
         const stepLineToPickledStepMapping = _.chain(pickle.steps)
-          .map(step => [step.locations[0].line, step])
+          .map(step => [_.last(step.locations).line, step])
           .fromPairs()
           .value()
         scenarioData.steps = testCase.steps.map(testStep => {
@@ -136,7 +139,7 @@ export default class JsonFormatter extends Formatter {
     if (testStep.sourceLocation) {
       const { line } = testStep.sourceLocation
       const pickledStep = stepLineToPickledStepMapping[line]
-      data.arguments = pickledStep.arguments
+      data.arguments = this.formatStepArguments(pickledStep.arguments)
       data.keyword = _.chain(pickledStep.locations)
         .map(location => stepLineToKeywordMapping[location.line])
         .compact()
@@ -146,6 +149,9 @@ export default class JsonFormatter extends Formatter {
       data.name = pickledStep.text
     } else {
       data.hidden = true
+    }
+    if (testStep.actionLocation) {
+      data.match = { location: formatLocation(testStep.actionLocation) }
     }
     if (testStep.result) {
       const { result: { exception, status } } = testStep

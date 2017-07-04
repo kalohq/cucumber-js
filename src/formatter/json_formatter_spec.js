@@ -57,8 +57,7 @@ describe('JsonFormatter', function() {
           sourceLocation: this.testCase.sourceLocation,
           steps: [
             {
-              sourceLocation: { uri: 'a.feature', line: 6 },
-              actionLocation: { uri: 'steps.js', line: 10 }
+              sourceLocation: { uri: 'a.feature', line: 6 }
             }
           ]
         })
@@ -117,8 +116,7 @@ describe('JsonFormatter', function() {
           sourceLocation: this.testCase.sourceLocation,
           steps: [
             {
-              sourceLocation: { uri: 'a.feature', line: 6 },
-              actionLocation: { uri: 'steps.js', line: 10 }
+              sourceLocation: { uri: 'a.feature', line: 6 }
             }
           ]
         })
@@ -140,6 +138,37 @@ describe('JsonFormatter', function() {
           status: 'failed',
           error_message: 'my error',
           duration: 1
+        })
+      })
+    })
+
+    describe('with a step definition', function() {
+      beforeEach(function() {
+        this.eventBroadcaster.emit('test-case-prepared', {
+          sourceLocation: this.testCase.sourceLocation,
+          steps: [
+            {
+              actionLocation: { uri: 'steps.js', line: 10 },
+              sourceLocation: { uri: 'a.feature', line: 6 }
+            }
+          ]
+        })
+        this.eventBroadcaster.emit('test-step-finished', {
+          index: 0,
+          testCase: this.testCase,
+          result: { duration: 1, status: Status.PASSED }
+        })
+        this.eventBroadcaster.emit('test-case-finished', {
+          sourceLocation: this.testCase.sourceLocation,
+          result: { duration: 1, status: Status.PASSED }
+        })
+        this.eventBroadcaster.emit('test-run-finished')
+      })
+
+      it('outputs the step with a match attribute', function() {
+        const features = JSON.parse(this.output)
+        expect(features[0].elements[0].steps[0].match).to.eql({
+          location: 'steps.js:10'
         })
       })
     })
@@ -177,119 +206,140 @@ describe('JsonFormatter', function() {
         expect(step.hidden).to.be.true
       })
     })
+  })
 
-    // describe('with a doc string', function() {
-    //   beforeEach(function() {
-    //     const docString = Object.create(DocString.prototype)
-    //     _.assign(docString, {
-    //       content: 'This is a DocString',
-    //       contentType: null,
-    //       line: 2
-    //     })
-    //     this.step.arguments = [docString]
-    //     this.jsonFormatter.handleStepResult(this.stepResult)
-    //     this.jsonFormatter.handleAfterFeatures({})
-    //   })
-    //
-    //   it('outputs the doc string as a step argument', function() {
-    //     const features = JSON.parse(this.output)
-    //     expect(features[0].elements[0].steps[0].arguments).to.eql([
-    //       {
-    //         line: 2,
-    //         content: 'This is a DocString',
-    //         contentType: null
-    //       }
-    //     ])
-    //   })
-    // })
+  describe('one scenario with one step with a doc string', function() {
+    beforeEach(function() {
+      const events = Gherkin.generateEvents(
+        'Feature: my feature\n' +
+          '  Scenario: my scenario\n' +
+          '    Given my step\n' +
+          '      """\n' +
+          '      This is a DocString\n' +
+          '      """\n',
+        'a.feature'
+      )
+      events.forEach(event => {
+        this.eventBroadcaster.emit(event.type, event)
+        if (event.type === 'pickle') {
+          this.eventBroadcaster.emit('pickle-accepted', {
+            type: 'pickle-accepted',
+            pickle: event.pickle,
+            uri: event.uri
+          })
+        }
+      })
+      this.testCase = { sourceLocation: { uri: 'a.feature', line: 2 } }
+      this.eventBroadcaster.emit('test-case-prepared', {
+        ...this.testCase,
+        steps: [
+          {
+            sourceLocation: { uri: 'a.feature', line: 3 },
+            actionLocation: { uri: 'steps.js', line: 10 }
+          }
+        ]
+      })
+      this.eventBroadcaster.emit('test-step-finished', {
+        index: 0,
+        testCase: this.testCase,
+        result: { duration: 1, status: Status.PASSED }
+      })
+      this.eventBroadcaster.emit('test-case-finished', {
+        ...this.testCase,
+        result: { duration: 1, status: Status.PASSED }
+      })
+      this.eventBroadcaster.emit('test-run-finished')
+    })
 
-    //       describe('with a data table', function() {
-    //         beforeEach(function() {
-    //           const dataTable = Object.create(DataTable.prototype)
-    //           _.assign(
-    //             dataTable,
-    //             createMock({
-    //               raw: [
-    //                 ['a:1', 'a:2', 'a:3'],
-    //                 ['b:1', 'b:2', 'b:3'],
-    //                 ['c:1', 'c:2', 'c:3']
-    //               ]
-    //             })
-    //           )
-    //           this.step.arguments = [dataTable]
-    //           this.jsonFormatter.handleStepResult(this.stepResult)
-    //           this.jsonFormatter.handleAfterFeatures()
-    //         })
-    //
-    //         it('outputs the data table as a step argument', function() {
-    //           const features = JSON.parse(this.output)
-    //           expect(features[0].elements[0].steps[0].arguments).to.eql([
-    //             {
-    //               rows: [
-    //                 { cells: ['a:1', 'a:2', 'a:3'] },
-    //                 { cells: ['b:1', 'b:2', 'b:3'] },
-    //                 { cells: ['c:1', 'c:2', 'c:3'] }
-    //               ]
-    //             }
-    //           ])
-    //         })
-    //       })
-    //
-    //       describe('with an unknown argument type', function() {
-    //         beforeEach(function() {
-    //           this.step.arguments = [{ some: 'data' }]
-    //         })
-    //
-    //         it('throws an arror', function() {
-    //           expect(() => {
-    //             this.jsonFormatter.handleStepResult(this.stepResult)
-    //           }).to.throw("Unknown argument type: { some: 'data' }")
-    //         })
-    //       })
-    //
-    //       describe('with attachments', function() {
-    //         beforeEach(function() {
-    //           const attachment1 = {
-    //             mimeType: 'first mime type',
-    //             data: 'first data'
-    //           }
-    //           const attachment2 = {
-    //             mimeType: 'second mime type',
-    //             data: 'second data'
-    //           }
-    //           this.stepResult.attachments = [attachment1, attachment2]
-    //           this.jsonFormatter.handleStepResult(this.stepResult)
-    //           this.jsonFormatter.handleAfterFeatures({})
-    //         })
-    //
-    //         it('outputs the step with embeddings', function() {
-    //           const features = JSON.parse(this.output)
-    //           expect(features[0].elements[0].steps[0].embeddings).to.eql([
-    //             { data: 'first data', mime_type: 'first mime type' },
-    //             { data: 'second data', mime_type: 'second mime type' }
-    //           ])
-    //         })
-    //       })
-    //
-    //       describe('with a step definition', function() {
-    //         beforeEach(function() {
-    //           const stepDefinition = {
-    //             line: 2,
-    //             uri: 'path/to/stepDef'
-    //           }
-    //           this.stepResult.stepDefinition = stepDefinition
-    //           this.jsonFormatter.handleStepResult(this.stepResult)
-    //           this.jsonFormatter.handleAfterFeatures({})
-    //         })
-    //
-    //         it('outputs the step with a match attribute', function() {
-    //           const features = JSON.parse(this.output)
-    //           expect(features[0].elements[0].steps[0].match).to.eql({
-    //             location: 'path/to/stepDef:2'
-    //           })
-    //         })
-    //       })
-    //     })
-    //   })
+    it('outputs the doc string as a step argument', function() {
+      const features = JSON.parse(this.output)
+      expect(features[0].elements[0].steps[0].arguments).to.eql([
+        {
+          line: 4,
+          content: 'This is a DocString'
+        }
+      ])
+    })
+  })
+
+  describe('one scenario with one step with a data table string', function() {
+    beforeEach(function() {
+      const events = Gherkin.generateEvents(
+        'Feature: my feature\n' +
+          '  Scenario: my scenario\n' +
+          '    Given my step\n' +
+          '      |aaa|b|c|\n' +
+          '      |d|e|ff|\n' +
+          '      |gg|h|iii|\n',
+        'a.feature'
+      )
+      events.forEach(event => {
+        this.eventBroadcaster.emit(event.type, event)
+        if (event.type === 'pickle') {
+          this.eventBroadcaster.emit('pickle-accepted', {
+            type: 'pickle-accepted',
+            pickle: event.pickle,
+            uri: event.uri
+          })
+        }
+      })
+      this.testCase = { sourceLocation: { uri: 'a.feature', line: 2 } }
+      this.eventBroadcaster.emit('test-case-prepared', {
+        ...this.testCase,
+        steps: [
+          {
+            sourceLocation: { uri: 'a.feature', line: 3 },
+            actionLocation: { uri: 'steps.js', line: 10 }
+          }
+        ]
+      })
+      this.eventBroadcaster.emit('test-step-finished', {
+        index: 0,
+        testCase: this.testCase,
+        result: { duration: 1, status: Status.PASSED }
+      })
+      this.eventBroadcaster.emit('test-case-finished', {
+        ...this.testCase,
+        result: { duration: 1, status: Status.PASSED }
+      })
+      this.eventBroadcaster.emit('test-run-finished')
+    })
+
+    it('outputs the data table as a step argument', function() {
+      const features = JSON.parse(this.output)
+      expect(features[0].elements[0].steps[0].arguments).to.eql([
+        {
+          rows: [
+            { cells: ['aaa', 'b', 'c'] },
+            { cells: ['d', 'e', 'ff'] },
+            { cells: ['gg', 'h', 'iii'] }
+          ]
+        }
+      ])
+    })
+  })
+
+  describe('with attachments', function() {
+    beforeEach(function() {
+      const attachment1 = {
+        mimeType: 'first mime type',
+        data: 'first data'
+      }
+      const attachment2 = {
+        mimeType: 'second mime type',
+        data: 'second data'
+      }
+      this.stepResult.attachments = [attachment1, attachment2]
+      this.jsonFormatter.handleStepResult(this.stepResult)
+      this.jsonFormatter.handleAfterFeatures({})
+    })
+
+    it('outputs the step with embeddings', function() {
+      const features = JSON.parse(this.output)
+      expect(features[0].elements[0].steps[0].embeddings).to.eql([
+        { data: 'first data', mime_type: 'first mime type' },
+        { data: 'second data', mime_type: 'second mime type' }
+      ])
+    })
   })
 })

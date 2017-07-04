@@ -4,7 +4,7 @@ import { formatLocation } from '../location_helpers'
 function buildEmptyMapping(stepDefinitions) {
   const mapping = {}
   stepDefinitions.forEach(stepDefinition => {
-    const location = formatLocation('', stepDefinition)
+    const location = formatLocation(stepDefinition)
     mapping[location] = {
       line: stepDefinition.line,
       pattern: stepDefinition.pattern,
@@ -15,24 +15,35 @@ function buildEmptyMapping(stepDefinitions) {
   return mapping
 }
 
-function buildMapping({ stepDefinitions, stepResults }) {
+function buildMapping({ stepDefinitions, testCaseCollector }) {
   const mapping = buildEmptyMapping(stepDefinitions)
-  stepResults.forEach(stepResult => {
-    const { duration, step, stepDefinition } = stepResult
-    if (stepDefinition) {
-      const location = formatLocation('', stepDefinition)
-      const match = {
-        line: step.line,
-        text: step.name,
-        uri: step.uri
+  _.each(testCaseCollector.testCaseMap, testCase => {
+    const { pickle } = testCaseCollector.getTestCaseData(
+      testCase.sourceLocation
+    )
+    const stepLineToPickledStepMapping = _.chain(pickle.steps)
+      .map(step => {
+        return [_.last(step.locations).line, step]
+      })
+      .fromPairs()
+      .value()
+    testCase.steps.forEach(testStep => {
+      const { actionLocation, sourceLocation, result: { duration } } = testStep
+      if (sourceLocation) {
+        const location = formatLocation(actionLocation)
+        const match = {
+          line: sourceLocation.line,
+          text: stepLineToPickledStepMapping[sourceLocation.line].text,
+          uri: sourceLocation.uri
+        }
+        if (isFinite(duration)) {
+          match.duration = duration
+        }
+        if (mapping[location]) {
+          mapping[location].matches.push(match)
+        }
       }
-      if (isFinite(duration)) {
-        match.duration = duration
-      }
-      if (mapping[location]) {
-        mapping[location].matches.push(match)
-      }
-    }
+    })
   })
   return mapping
 }
@@ -65,7 +76,7 @@ function buildResult(mapping) {
     .value()
 }
 
-export function getUsage({ cwd, stepDefinitions, stepResults }) {
-  const mapping = buildMapping({ cwd, stepDefinitions, stepResults })
+export function getUsage({ stepDefinitions, testCaseCollector }) {
+  const mapping = buildMapping({ stepDefinitions, testCaseCollector })
   return buildResult(mapping)
 }

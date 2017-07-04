@@ -134,7 +134,7 @@ export function formatIssue({
     .fromPairs()
     .value()
   const stepLineToPickledStepMapping = _.chain(pickle.steps)
-    .map(step => [step.locations[0].line, step])
+    .map(step => [_.last(step.locations).line, step])
     .fromPairs()
     .value()
   _.each(testCase.steps, testStep => {

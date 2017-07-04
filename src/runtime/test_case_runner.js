@@ -51,7 +51,7 @@ export default class TestCaseRunner {
       })
       const sourceLocation = {
         uri: this.testCase.uri,
-        line: step.locations[0].line
+        line: _.last(step.locations).line
       }
       const data = { sourceLocation }
       if (actionLocations.length === 1) {

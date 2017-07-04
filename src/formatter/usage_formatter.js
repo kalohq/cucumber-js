@@ -1,13 +1,21 @@
 import _ from 'lodash'
-import { formatLocation, getUsage } from './helpers'
+import { formatLocation, getUsage, TestCaseCollector } from './helpers'
 import Formatter from './'
 import Table from 'cli-table'
 
 export default class UsageFormatter extends Formatter {
-  handleFeaturesResult(featuresResult) {
+  constructor(options) {
+    super(options)
+    this.testCaseCollector = new TestCaseCollector({
+      eventBroadcaster: options.eventBroadcaster
+    })
+    options.eventBroadcaster.on('test-run-finished', ::this.logUsage)
+  }
+
+  logUsage() {
     const usage = getUsage({
       stepDefinitions: this.supportCodeLibrary.stepDefinitions,
-      stepResults: featuresResult.stepResults
+      testCaseCollector: this.testCaseCollector
     })
     if (usage.length === 0) {
       this.log('No step definitions')
@@ -32,7 +40,7 @@ export default class UsageFormatter extends Formatter {
       } else {
         col2.push('UNUSED')
       }
-      let col3 = [formatLocation(this.cwd, { line, uri })]
+      let col3 = [formatLocation({ line, uri })]
       _.take(matches, 5).forEach(match => {
         col1.push(`  ${match.text}`)
         if (isFinite(match.duration)) {
@@ -40,7 +48,7 @@ export default class UsageFormatter extends Formatter {
         } else {
           col2.push('-')
         }
-        col3.push(formatLocation(this.cwd, match))
+        col3.push(formatLocation(match))
       })
       if (matches.length > 5) {
         col1.push(`  ${matches.length - 5} more`)

@@ -1,8 +1,5 @@
-let instanceId = 1
-
 export default class TestCaseCollector {
   constructor({ eventBroadcaster }) {
-    this.id = instanceId += 1
     eventBroadcaster
       .on('gherkin-document', ::this.storeGherkinDocument)
       .on('pickle-accepted', ::this.storePickle)
