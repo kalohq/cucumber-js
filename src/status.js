@@ -26,6 +26,3 @@ export function getStatusMapping(initialValue) {
     .fromPairs()
     .value()
 }
-
-export const FAILING_STATUSES = [statuses.AMBIGUOUS, statuses.FAILED]
-export const STRICT_FAILING_STATUSES = [statuses.PENDING, statuses.UNDEFINED]
