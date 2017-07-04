@@ -16,6 +16,7 @@ function getPendingStepResultMessage({ colorFns }) {
 
 export function getStepMessage({
   colorFns,
+  keywordType,
   snippetBuilder,
   testStep,
   pickledStep
@@ -28,6 +29,7 @@ export function getStepMessage({
     case Status.UNDEFINED:
       return getUndefinedStepResultMessage({
         colorFns,
+        keywordType,
         snippetBuilder,
         pickledStep
       })
@@ -38,10 +40,11 @@ export function getStepMessage({
 
 function getUndefinedStepResultMessage({
   colorFns,
+  keywordType,
   snippetBuilder,
   pickledStep
 }) {
-  const snippet = snippetBuilder.build(pickledStep)
+  const snippet = snippetBuilder.build({ keywordType, pickledStep })
   const message =
     'Undefined. Implement with the following snippet:' +
     '\n\n' +

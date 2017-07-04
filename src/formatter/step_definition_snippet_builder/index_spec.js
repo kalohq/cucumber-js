@@ -14,17 +14,19 @@ describe('StepDefinitionSnippetBuilder', function() {
 
   describe('build()', function() {
     beforeEach(function() {
-      this.step = {
-        arguments: [],
+      this.input = {
         keywordType: KeywordType.PRECONDITION,
-        name: ''
+        pickledStep: {
+          arguments: [],
+          text: ''
+        }
       }
     })
 
     describe('step is an precondition step', function() {
       beforeEach(function() {
-        this.step.keywordType = KeywordType.PRECONDITION
-        this.result = this.snippetBuilder.build(this.step)
+        this.input.keywordType = KeywordType.PRECONDITION
+        this.result = this.snippetBuilder.build(this.input)
       })
 
       it('uses Given as the function name', function() {
@@ -34,8 +36,8 @@ describe('StepDefinitionSnippetBuilder', function() {
 
     describe('step is an event step', function() {
       beforeEach(function() {
-        this.step.keywordType = KeywordType.EVENT
-        this.result = this.snippetBuilder.build(this.step)
+        this.input.keywordType = KeywordType.EVENT
+        this.result = this.snippetBuilder.build(this.input)
       })
 
       it('uses When as the function name', function() {
@@ -45,8 +47,8 @@ describe('StepDefinitionSnippetBuilder', function() {
 
     describe('step is an outcome step', function() {
       beforeEach(function() {
-        this.step.keywordType = KeywordType.OUTCOME
-        this.result = this.snippetBuilder.build(this.step)
+        this.input.keywordType = KeywordType.OUTCOME
+        this.result = this.snippetBuilder.build(this.input)
       })
 
       it('uses Then as the function name', function() {
@@ -56,8 +58,8 @@ describe('StepDefinitionSnippetBuilder', function() {
 
     describe('step has simple name', function() {
       beforeEach(function() {
-        this.step.name = 'abc'
-        this.result = this.snippetBuilder.build(this.step)
+        this.input.pickledStep.text = 'abc'
+        this.result = this.snippetBuilder.build(this.input)
       })
 
       it('returns the cucumber expression', function() {
@@ -67,8 +69,8 @@ describe('StepDefinitionSnippetBuilder', function() {
 
     describe('step name has a quoted string', function() {
       beforeEach(function() {
-        this.step.name = 'abc "def" ghi'
-        this.result = this.snippetBuilder.build(this.step)
+        this.input.pickledStep.text = 'abc "def" ghi'
+        this.result = this.snippetBuilder.build(this.input)
       })
 
       it('replaces the quoted string with a capture group and adds a parameter', function() {
@@ -84,8 +86,8 @@ describe('StepDefinitionSnippetBuilder', function() {
 
     describe('step name has multiple quoted strings', function() {
       beforeEach(function() {
-        this.step.name = 'abc "def" ghi "jkl" mno'
-        this.result = this.snippetBuilder.build(this.step)
+        this.input.pickledStep.text = 'abc "def" ghi "jkl" mno'
+        this.result = this.snippetBuilder.build(this.input)
       })
 
       it('replaces the quoted strings with capture groups and adds parameters', function() {
@@ -102,8 +104,8 @@ describe('StepDefinitionSnippetBuilder', function() {
 
     describe('step name has a standalone number', function() {
       beforeEach(function() {
-        this.step.name = 'abc 123 def'
-        this.result = this.snippetBuilder.build(this.step)
+        this.input.pickledStep.text = 'abc 123 def'
+        this.result = this.snippetBuilder.build(this.input)
       })
 
       it('replaces the number with a capture group and adds a parameter', function() {
@@ -119,8 +121,8 @@ describe('StepDefinitionSnippetBuilder', function() {
 
     describe('step has a data table argument', function() {
       beforeEach(function() {
-        this.step.arguments = [new DataTable({ rows: [] })]
-        this.result = this.snippetBuilder.build(this.step)
+        this.input.pickledStep.arguments = [{ rows: [] }]
+        this.result = this.snippetBuilder.build(this.input)
       })
 
       it('passes table as a parameter', function() {
@@ -133,8 +135,8 @@ describe('StepDefinitionSnippetBuilder', function() {
 
     describe('step has a doc string argument', function() {
       beforeEach(function() {
-        this.step.arguments = [Object.create(DocString.prototype)]
-        this.result = this.snippetBuilder.build(this.step)
+        this.input.pickledStep.arguments = [{ content: '' }]
+        this.result = this.snippetBuilder.build(this.input)
       })
 
       it('passes table as a parameter', function() {
@@ -147,9 +149,9 @@ describe('StepDefinitionSnippetBuilder', function() {
 
     describe('step name has multiple quoted strings and a data table argument', function() {
       beforeEach(function() {
-        this.step.name = 'abc "def" ghi "jkl" mno'
-        this.step.arguments = [Object.create(DataTable.prototype)]
-        this.result = this.snippetBuilder.build(this.step)
+        this.input.pickledStep.text = 'abc "def" ghi "jkl" mno'
+        this.input.pickledStep.arguments = [{ rows: [] }]
+        this.result = this.snippetBuilder.build(this.input)
       })
 
       it('puts the table argument after the capture groups', function() {

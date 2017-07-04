@@ -10,15 +10,15 @@ export default class StepDefinitionSnippetBuilder {
     )
   }
 
-  build(step) {
-    const functionName = this.getFunctionName(step)
+  build({ keywordType, pickledStep }) {
+    const functionName = this.getFunctionName(keywordType)
     const generatedExpression = this.cucumberExpressionGenerator.generateExpression(
-      step.text,
+      pickledStep.text,
       true
     )
     const pattern = generatedExpression.source
     const parameters = this.getParameters(
-      step,
+      pickledStep,
       generatedExpression.parameterNames
     )
     const comment =
@@ -26,8 +26,8 @@ export default class StepDefinitionSnippetBuilder {
     return this.snippetSyntax.build(functionName, pattern, parameters, comment)
   }
 
-  getFunctionName(step) {
-    switch (step.keywordType) {
+  getFunctionName(keywordType) {
+    switch (keywordType) {
       case KeywordType.EVENT:
         return 'When'
       case KeywordType.OUTCOME:
@@ -47,9 +47,9 @@ export default class StepDefinitionSnippetBuilder {
 
   getStepArgumentParameters(step) {
     return step.arguments.map(function(arg) {
-      if (arg.rows) {
+      if (arg.hasOwnProperty('rows')) {
         return 'table'
-      } else if (arg.content) {
+      } else if (arg.hasOwnProperty('content')) {
         return 'string'
       } else {
         throw new Error(`Unknown argument type: ${arg}`)

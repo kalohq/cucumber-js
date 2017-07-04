@@ -6,6 +6,7 @@ import Status from '../../status'
 import figures from 'figures'
 import Table from 'cli-table'
 import util from 'util'
+import KeywordType, { getStepKeywordType } from '../../keyword_type'
 
 const CHARACTERS = {
   [Status.AMBIGUOUS]: figures.cross,
@@ -56,22 +57,17 @@ function formatDocString(arg) {
 
 function formatStep({
   colorFns,
+  keyword,
+  keywordType,
+  pickledStep,
   snippetBuilder,
-  testStep,
-  stepLineToKeywordMapping,
-  stepLineToPickledStepMapping
+  testStep
 }) {
   const { status } = testStep.result
   const colorFn = colorFns[status]
 
-  let identifier, pickledStep
+  let identifier
   if (testStep.sourceLocation) {
-    pickledStep = stepLineToPickledStepMapping[testStep.sourceLocation.line]
-    const keyword = _.chain(pickledStep.locations)
-      .map(({ line }) => stepLineToKeywordMapping[line])
-      .compact()
-      .first()
-      .value()
     identifier = keyword + (pickledStep.text || '')
   } else {
     identifier = 'Hook'
@@ -100,6 +96,7 @@ function formatStep({
   }
   const message = getStepMessage({
     colorFns,
+    keywordType,
     pickledStep,
     snippetBuilder,
     testStep
@@ -144,15 +141,32 @@ export function formatIssue({
     .map(step => [_.last(step.locations).line, step])
     .fromPairs()
     .value()
+  let previousKeywordType = KeywordType.PRECONDITION
   _.each(testCase.steps, testStep => {
+    let keyword, keywordType, pickledStep
+    if (testStep.sourceLocation) {
+      pickledStep = stepLineToPickledStepMapping[testStep.sourceLocation.line]
+      keyword = _.chain(pickledStep.locations)
+        .map(({ line }) => stepLineToKeywordMapping[line])
+        .compact()
+        .first()
+        .value()
+      keywordType = getStepKeywordType({
+        keyword,
+        language: gherkinDocument.feature.language,
+        previousKeywordType
+      })
+    }
     const formattedStep = formatStep({
       colorFns,
+      keyword,
+      keywordType,
+      pickledStep,
       snippetBuilder,
-      stepLineToKeywordMapping,
-      stepLineToPickledStepMapping,
       testStep
     })
     text += indentString(formattedStep, prefix.length)
+    previousKeywordType = keywordType
   })
   return text + '\n'
 }
