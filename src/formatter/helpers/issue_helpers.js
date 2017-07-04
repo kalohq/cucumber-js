@@ -5,6 +5,7 @@ import indentString from 'indent-string'
 import Status from '../../status'
 import figures from 'figures'
 import Table from 'cli-table'
+import util from 'util'
 
 const CHARACTERS = {
   [Status.AMBIGUOUS]: figures.cross,
@@ -55,16 +56,17 @@ function formatDocString(arg) {
 
 function formatStep({
   colorFns,
-  step,
+  snippetBuilder,
+  testStep,
   stepLineToKeywordMapping,
   stepLineToPickledStepMapping
 }) {
-  const { status } = step.result
+  const { status } = testStep.result
   const colorFn = colorFns[status]
 
   let identifier, pickledStep
-  if (step.sourceLocation) {
-    pickledStep = stepLineToPickledStepMapping[step.sourceLocation.line]
+  if (testStep.sourceLocation) {
+    pickledStep = stepLineToPickledStepMapping[testStep.sourceLocation.line]
     const keyword = _.chain(pickledStep.locations)
       .map(({ line }) => stepLineToKeywordMapping[line])
       .compact()
@@ -77,7 +79,7 @@ function formatStep({
 
   let text = colorFn(CHARACTERS[status] + ' ' + identifier)
 
-  const { actionLocation } = step
+  const { actionLocation } = testStep
   if (actionLocation) {
     text += ' # ' + colorFns.location(formatLocation(actionLocation))
   }
@@ -86,15 +88,24 @@ function formatStep({
   if (pickledStep) {
     _.each(pickledStep.arguments, arg => {
       let str
-      if (arg.rows) {
+      if (arg.hasOwnProperty('rows')) {
         str = formatDataTable(arg)
-      } else if (arg.content) {
+      } else if (arg.hasOwnProperty('content')) {
         str = formatDocString(arg)
       } else {
-        throw new Error('Unknown argument type: ' + arg)
+        throw new Error('Unknown argument type: ' + util.inspect(arg))
       }
       text += indentString(colorFn(str) + '\n', 4)
     })
+  }
+  const message = getStepMessage({
+    colorFns,
+    pickledStep,
+    snippetBuilder,
+    testStep
+  })
+  if (message) {
+    text += indentString(message, 4) + '\n'
   }
   return text
 }
@@ -126,22 +137,15 @@ export function formatIssue({
     .map(step => [step.locations[0].line, step])
     .fromPairs()
     .value()
-  _.each(testCase.steps, step => {
-    const identifier = formatStep({
-      colorFns,
-      step,
-      stepLineToKeywordMapping,
-      stepLineToPickledStepMapping
-    })
-    text += indentString(identifier, prefix.length)
-    const message = getStepMessage({
+  _.each(testCase.steps, testStep => {
+    const formattedStep = formatStep({
       colorFns,
       snippetBuilder,
-      step
+      stepLineToKeywordMapping,
+      stepLineToPickledStepMapping,
+      testStep
     })
-    if (message) {
-      text += indentString(message, prefix.length + 4) + '\n'
-    }
+    text += indentString(formattedStep, prefix.length)
   })
   return text + '\n'
 }

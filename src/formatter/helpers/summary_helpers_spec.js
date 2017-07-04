@@ -5,7 +5,7 @@ import Status from '../../status'
 describe('SummaryHelpers', function() {
   describe('formatSummary', function() {
     beforeEach(function() {
-      this.testCaseMap = new Map()
+      this.testCaseMap = {}
       this.testRun = { result: { duration: 0 } }
       this.options = {
         colorFns: getColorFns(false),
@@ -28,10 +28,10 @@ describe('SummaryHelpers', function() {
 
     describe('with one passing scenario with one passing step', function() {
       beforeEach(function() {
-        this.testCaseMap.set('a.feature:1', {
+        this.testCaseMap['a.feature:1'] = {
           steps: [{ result: { status: Status.PASSED } }],
           result: { status: Status.PASSED }
-        })
+        }
         this.result = formatSummary(this.options)
       })
 
@@ -44,13 +44,13 @@ describe('SummaryHelpers', function() {
 
     describe('with one passing scenario with multiple passing step', function() {
       beforeEach(function() {
-        this.testCaseMap.set('a.feature:1', {
+        this.testCaseMap['a.feature:1'] = {
           steps: [
             { result: { status: Status.PASSED } },
             { result: { status: Status.PASSED } }
           ],
           result: { status: Status.PASSED }
-        })
+        }
         this.result = formatSummary(this.options)
       })
 
@@ -63,30 +63,30 @@ describe('SummaryHelpers', function() {
 
     describe('with one of every kind of scenario', function() {
       beforeEach(function() {
-        this.testCaseMap.set('a.feature:1', {
+        this.testCaseMap['a.feature:1'] = {
           steps: [{ result: { status: Status.AMBIGUOUS } }],
           result: { status: Status.AMBIGUOUS }
-        })
-        this.testCaseMap.set('a.feature:2', {
+        }
+        this.testCaseMap['a.feature:2'] = {
           steps: [{ result: { status: Status.FAILED } }],
           result: { status: Status.FAILED }
-        })
-        this.testCaseMap.set('a.feature:3', {
+        }
+        this.testCaseMap['a.feature:3'] = {
           steps: [{ result: { status: Status.PENDING } }],
           result: { status: Status.PENDING }
-        })
-        this.testCaseMap.set('a.feature:4', {
+        }
+        this.testCaseMap['a.feature:4'] = {
           steps: [{ result: { status: Status.PASSED } }],
           result: { status: Status.PASSED }
-        })
-        this.testCaseMap.set('a.feature:5', {
+        }
+        this.testCaseMap['a.feature:5'] = {
           steps: [{ result: { status: Status.SKIPPED } }],
           result: { status: Status.SKIPPED }
-        })
-        this.testCaseMap.set('a.feature:6', {
+        }
+        this.testCaseMap['a.feature:6'] = {
           steps: [{ result: { status: Status.UNDEFINED } }],
           result: { status: Status.UNDEFINED }
-        })
+        }
         this.result = formatSummary(this.options)
       })
 

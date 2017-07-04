@@ -32,22 +32,19 @@ export default class Cli {
     supportCodeLibrary
   }) {
     const streamsToClose = []
-    await Promise.map(
-      formats,
-      async ({ type, outputTo }) => {
-        let stream = this.stdout
-        if (outputTo) {
-          let fd = await fs.open(path.join(this.cwd, outputTo), 'w')
-          stream = fs.createWriteStream(null, { fd })
-          streamsToClose.push(stream)
-        }
-        const typeOptions = _.assign(
-          { eventBroadcaster, log: ::stream.write, stream, supportCodeLibrary },
-          formatOptions
-        )
-        return FormatterBuilder.build(type, typeOptions)
+    await Promise.map(formats, async ({ type, outputTo }) => {
+      let stream = this.stdout
+      if (outputTo) {
+        let fd = await fs.open(path.join(this.cwd, outputTo), 'w')
+        stream = fs.createWriteStream(null, { fd })
+        streamsToClose.push(stream)
       }
-    )
+      const typeOptions = _.assign(
+        { eventBroadcaster, log: ::stream.write, stream, supportCodeLibrary },
+        formatOptions
+      )
+      return FormatterBuilder.build(type, typeOptions)
+    })
     return function() {
       return Promise.each(streamsToClose, stream =>
         Promise.promisify(::stream.end)()
@@ -82,20 +79,18 @@ export default class Cli {
       configuration.scenarioFilterOptions
     )
     const eventBroadcaster = new EventEmitter()
-    const [testCases, cleanup] = await Promise.all([
-      getTestCases({
-        cwd: this.cwd,
-        eventBroadcaster,
-        featurePaths: configuration.featurePaths,
-        scenarioFilter
-      }),
-      this.initializeFormatters({
-        eventBroadcaster,
-        formatOptions: configuration.formatOptions,
-        formats: configuration.formats,
-        supportCodeLibrary
-      })
-    ])
+    const cleanup = await this.initializeFormatters({
+      eventBroadcaster,
+      formatOptions: configuration.formatOptions,
+      formats: configuration.formats,
+      supportCodeLibrary
+    })
+    const testCases = await getTestCases({
+      cwd: this.cwd,
+      eventBroadcaster,
+      featurePaths: configuration.featurePaths,
+      scenarioFilter
+    })
     const runtime = new Runtime({
       eventBroadcaster,
       options: configuration.runtimeOptions,

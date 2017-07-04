@@ -2,37 +2,46 @@ import { formatError } from './error_helpers'
 import Status from '../../status'
 import indentString from 'indent-string'
 
-function getAmbiguousStepResultMessage({ colorFns, step }) {
-  return colorFns.ambiguous(step.result.exception)
+function getAmbiguousStepResultMessage({ colorFns, testStep }) {
+  return colorFns.ambiguous(testStep.result.exception)
 }
 
-function getFailedStepResultMessage({ colorFns, step }) {
-  return formatError(step.result.exception, colorFns)
+function getFailedStepResultMessage({ colorFns, testStep }) {
+  return formatError(testStep.result.exception, colorFns)
 }
 
 function getPendingStepResultMessage({ colorFns }) {
   return colorFns.pending('Pending')
 }
 
-export function getStepMessage({ colorFns, snippetBuilder, step }) {
-  switch (step.result.status) {
+export function getStepMessage({
+  colorFns,
+  snippetBuilder,
+  testStep,
+  pickledStep
+}) {
+  switch (testStep.result.status) {
     case Status.AMBIGUOUS:
-      return getAmbiguousStepResultMessage({ colorFns, step })
+      return getAmbiguousStepResultMessage({ colorFns, testStep })
     case Status.FAILED:
-      return getFailedStepResultMessage({ colorFns, step })
+      return getFailedStepResultMessage({ colorFns, testStep })
     case Status.UNDEFINED:
       return getUndefinedStepResultMessage({
         colorFns,
         snippetBuilder,
-        step
+        pickledStep
       })
     case Status.PENDING:
       return getPendingStepResultMessage({ colorFns })
   }
 }
 
-function getUndefinedStepResultMessage({ colorFns, snippetBuilder, step }) {
-  const snippet = snippetBuilder.build(step)
+function getUndefinedStepResultMessage({
+  colorFns,
+  snippetBuilder,
+  pickledStep
+}) {
+  const snippet = snippetBuilder.build(pickledStep)
   const message =
     'Undefined. Implement with the following snippet:' +
     '\n\n' +

@@ -14,7 +14,7 @@ const STATUS_REPORT_ORDER = [
 export function formatSummary({ colorFns, testCaseMap, testRun }) {
   const testCaseResults = []
   const testStepResults = []
-  testCaseMap.forEach(({ result, steps }) => {
+  _.each(testCaseMap, ({ result, steps }) => {
     testCaseResults.push(result)
     testStepResults.push(..._.map(steps, 'result'))
   })

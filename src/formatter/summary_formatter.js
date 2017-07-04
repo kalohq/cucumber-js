@@ -26,7 +26,7 @@ export default class SummaryFormatter extends Formatter {
   logSummary(testRun) {
     const failures = []
     const warnings = []
-    this.testCaseCollector.testCaseMap.forEach(testCase => {
+    _.each(this.testCaseCollector.testCaseMap, testCase => {
       if (this.isTestCaseFailure(testCase)) {
         failures.push(testCase)
       } else if (this.isTestCaseWarning(testCase)) {

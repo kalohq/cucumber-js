@@ -13,7 +13,7 @@ export default class StepDefinitionSnippetBuilder {
   build(step) {
     const functionName = this.getFunctionName(step)
     const generatedExpression = this.cucumberExpressionGenerator.generateExpression(
-      step.name,
+      step.text,
       true
     )
     const pattern = generatedExpression.source
