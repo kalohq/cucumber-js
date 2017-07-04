@@ -54,7 +54,7 @@ export default class SummaryFormatter extends Formatter {
       const {
         gherkinDocument,
         pickle
-      } = this.testCaseCollector.getTestCaseData(testCase)
+      } = this.testCaseCollector.getTestCaseData(testCase.sourceLocation)
       this.log(
         formatIssue({
           colorFns: this.colorFns,

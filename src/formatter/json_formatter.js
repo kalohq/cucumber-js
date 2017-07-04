@@ -73,7 +73,9 @@ export default class JsonFormatter extends Formatter {
         .fromPairs()
         .value()
       featureData.elements = group.map(testCase => {
-        const { pickle } = this.testCaseCollector.getTestCaseData(testCase)
+        const { pickle } = this.testCaseCollector.getTestCaseData(
+          testCase.sourceLocation
+        )
         const scenarioData = this.getScenarioData({
           featureId: featureData.id,
           pickle,

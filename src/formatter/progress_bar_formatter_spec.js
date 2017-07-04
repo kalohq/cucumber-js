@@ -1,9 +1,12 @@
 import getColorFns from './get_color_fns'
 import ProgressBarFormatter from './progress_bar_formatter'
 import Status from '../status'
+import { EventEmitter } from 'events'
+import Gherkin from 'gherkin'
 
 describe('ProgressBarFormatter', function() {
   beforeEach(function() {
+    this.eventBroadcaster = new EventEmitter()
     this.output = ''
     const logFn = data => {
       this.output += data
@@ -12,19 +15,24 @@ describe('ProgressBarFormatter', function() {
     this.progressBarFormatter = new ProgressBarFormatter({
       colorFns,
       cwd: 'path/to/project',
+      eventBroadcaster: this.eventBroadcaster,
       log: logFn,
       snippetBuilder: createMock({ build: 'snippet' }),
       stream: {}
     })
   })
 
-  describe('before features', function() {
+  describe('pickle-accepted, test-case-started', function() {
     beforeEach(function() {
-      const features = [
-        { scenarios: [{ steps: [1, 2, 3] }] },
-        { scenarios: [{ steps: [4, 5] }] }
-      ]
-      this.progressBarFormatter.handleBeforeFeatures(features)
+      this.eventBroadcaster.emit('pickle-accepted', {
+        pickle: { locations: [{ line: 2 }], steps: [1, 2, 3] },
+        uri: 'path/to/feature'
+      })
+      this.eventBroadcaster.emit('pickle-accepted', {
+        pickle: { locations: [{ line: 7 }], steps: [4, 5] },
+        uri: 'path/to/feature'
+      })
+      this.eventBroadcaster.emit('test-case-started')
     })
 
     it('initializes a progress bar with the total number of steps', function() {
@@ -32,19 +40,32 @@ describe('ProgressBarFormatter', function() {
     })
   })
 
-  describe('step result', function() {
+  describe('test-step-finished', function() {
     beforeEach(function() {
       this.progressBarFormatter.progressBar = {
         interrupt: sinon.stub(),
         tick: sinon.stub()
       }
+      this.eventBroadcaster.emit('test-case-prepared', {
+        sourceLocation: { line: 2, uri: 'path/to/feature' },
+        steps: [
+          { actionLocation: { line: 2, uri: 'path/to/steps' } },
+          {
+            actionLocation: { line: 2, uri: 'path/to/steps' },
+            sourceLocation: { line: 3, uri: 'path/to/feature' }
+          }
+        ]
+      })
     })
 
     describe('step is a hook', function() {
       beforeEach(function() {
-        this.progressBarFormatter.handleStepResult({
-          status: Status.PASSED,
-          step: Object.create(Hook.prototype)
+        this.eventBroadcaster.emit('test-step-finished', {
+          index: 0,
+          testCase: {
+            sourceLocation: { line: 2, uri: 'path/to/feature' }
+          },
+          result: { status: Status.PASSED }
         })
       })
 
@@ -56,9 +77,12 @@ describe('ProgressBarFormatter', function() {
 
     describe('step is a normal step', function() {
       beforeEach(function() {
-        this.progressBarFormatter.handleStepResult({
-          status: Status.PASSED,
-          step: Object.create(Step.prototype)
+        this.eventBroadcaster.emit('test-step-finished', {
+          index: 1,
+          testCase: {
+            sourceLocation: { line: 2, uri: 'path/to/feature' }
+          },
+          result: { status: Status.PASSED }
         })
       })
 
@@ -69,36 +93,53 @@ describe('ProgressBarFormatter', function() {
     })
   })
 
-  describe('scenarioResult', function() {
+  describe('test-case-finished', function() {
     beforeEach(function() {
       this.progressBarFormatter.progressBar = {
         interrupt: sinon.stub(),
         tick: sinon.stub()
       }
-      this.scenario = {
-        line: 1,
-        uri: 'path/to/project/a.feature'
-      }
-      this.step = {
-        arguments: []
-      }
+      const events = Gherkin.generateEvents(
+        'Feature: a\nScenario: b\nGiven a step',
+        'a.feature'
+      )
+      events.forEach(event => {
+        this.eventBroadcaster.emit(event.type, event)
+        if (event.type === 'pickle') {
+          this.eventBroadcaster.emit('pickle-accepted', {
+            type: 'pickle-accepted',
+            pickle: event.pickle,
+            uri: event.uri
+          })
+        }
+      })
+      this.testCase = { sourceLocation: { uri: 'a.feature', line: 2 } }
     })
 
     describe('ambiguous', function() {
       beforeEach(function() {
-        this.progressBarFormatter.handleScenarioResult({
-          status: Status.AMBIGUOUS,
-          scenario: this.scenario,
-          stepResults: [
+        this.eventBroadcaster.emit('test-case-prepared', {
+          sourceLocation: this.testCase.sourceLocation,
+          steps: [
             {
-              ambiguousStepDefinitions: [
-                { line: 1, pattern: /a/, uri: 'path/to/project/file1' },
-                { line: 1, pattern: /b/, uri: 'path/to/project/file2' }
-              ],
-              status: Status.AMBIGUOUS,
-              step: this.step
+              sourceLocation: { uri: 'a.feature', line: 3 }
             }
           ]
+        })
+        this.eventBroadcaster.emit('test-step-finished', {
+          index: 0,
+          testCase: this.testCase,
+          result: {
+            exception:
+              'Multiple step definitions match:\n' +
+              '  pattern1        - steps.js:3\n' +
+              '  longer pattern2 - steps.js:4',
+            status: Status.AMBIGUOUS
+          }
+        })
+        this.eventBroadcaster.emit('test-case-finished', {
+          sourceLocation: this.testCase.sourceLocation,
+          result: { status: Status.AMBIGUOUS }
         })
       })
 
@@ -110,20 +151,23 @@ describe('ProgressBarFormatter', function() {
 
     describe('failed', function() {
       beforeEach(function() {
-        this.progressBarFormatter.handleScenarioResult({
-          status: Status.FAILED,
-          scenario: this.scenario,
-          stepResults: [
+        this.eventBroadcaster.emit('test-case-prepared', {
+          sourceLocation: this.testCase.sourceLocation,
+          steps: [
             {
-              failureException: new Error('error message'),
-              status: Status.FAILED,
-              step: this.step,
-              stepDefinition: {
-                line: 1,
-                uri: 'path/to/project/steps.js'
-              }
+              sourceLocation: { uri: 'a.feature', line: 3 },
+              actionLocation: { uri: 'steps.js', line: 4 }
             }
           ]
+        })
+        this.eventBroadcaster.emit('test-step-finished', {
+          index: 0,
+          testCase: this.testCase,
+          result: { exception: 'error', status: Status.FAILED }
+        })
+        this.eventBroadcaster.emit('test-case-finished', {
+          sourceLocation: this.testCase.sourceLocation,
+          result: { status: Status.FAILED }
         })
       })
 
@@ -135,19 +179,23 @@ describe('ProgressBarFormatter', function() {
 
     describe('passed', function() {
       beforeEach(function() {
-        this.progressBarFormatter.handleScenarioResult({
-          status: Status.PASSED,
-          scenario: this.scenario,
-          stepResults: [
+        this.eventBroadcaster.emit('test-case-prepared', {
+          sourceLocation: this.testCase.sourceLocation,
+          steps: [
             {
-              status: Status.PASSED,
-              step: this.step,
-              stepDefinition: {
-                line: 1,
-                uri: 'path/to/project/steps.js'
-              }
+              sourceLocation: { uri: 'a.feature', line: 3 },
+              actionLocation: { uri: 'steps.js', line: 4 }
             }
           ]
+        })
+        this.eventBroadcaster.emit('test-step-finished', {
+          index: 0,
+          testCase: this.testCase,
+          result: { status: Status.PASSED }
+        })
+        this.eventBroadcaster.emit('test-case-finished', {
+          sourceLocation: this.testCase.sourceLocation,
+          result: { status: Status.PASSED }
         })
       })
 
@@ -159,19 +207,23 @@ describe('ProgressBarFormatter', function() {
 
     describe('pending', function() {
       beforeEach(function() {
-        this.progressBarFormatter.handleScenarioResult({
-          status: Status.PENDING,
-          scenario: this.scenario,
-          stepResults: [
+        this.eventBroadcaster.emit('test-case-prepared', {
+          sourceLocation: this.testCase.sourceLocation,
+          steps: [
             {
-              status: Status.PENDING,
-              step: this.step,
-              stepDefinition: {
-                line: 1,
-                uri: 'path/to/project/steps.js'
-              }
+              sourceLocation: { uri: 'a.feature', line: 3 },
+              actionLocation: { uri: 'steps.js', line: 4 }
             }
           ]
+        })
+        this.eventBroadcaster.emit('test-step-finished', {
+          index: 0,
+          testCase: this.testCase,
+          result: { status: Status.PENDING }
+        })
+        this.eventBroadcaster.emit('test-case-finished', {
+          sourceLocation: this.testCase.sourceLocation,
+          result: { status: Status.PENDING }
         })
       })
 
@@ -183,19 +235,23 @@ describe('ProgressBarFormatter', function() {
 
     describe('skipped', function() {
       beforeEach(function() {
-        this.progressBarFormatter.handleScenarioResult({
-          status: Status.SKIPPED,
-          scenario: this.scenario,
-          stepResults: [
+        this.eventBroadcaster.emit('test-case-prepared', {
+          sourceLocation: this.testCase.sourceLocation,
+          steps: [
             {
-              status: Status.SKIPPED,
-              step: this.step,
-              stepDefinition: {
-                line: 1,
-                uri: 'path/to/project/steps.js'
-              }
+              sourceLocation: { uri: 'a.feature', line: 3 },
+              actionLocation: { uri: 'steps.js', line: 4 }
             }
           ]
+        })
+        this.eventBroadcaster.emit('test-step-finished', {
+          index: 0,
+          testCase: this.testCase,
+          result: { status: Status.SKIPPED }
+        })
+        this.eventBroadcaster.emit('test-case-finished', {
+          sourceLocation: this.testCase.sourceLocation,
+          result: { status: Status.SKIPPED }
         })
       })
 
@@ -207,15 +263,22 @@ describe('ProgressBarFormatter', function() {
 
     describe('undefined', function() {
       beforeEach(function() {
-        this.progressBarFormatter.handleScenarioResult({
-          status: Status.UNDEFINED,
-          scenario: this.scenario,
-          stepResults: [
+        this.eventBroadcaster.emit('test-case-prepared', {
+          sourceLocation: this.testCase.sourceLocation,
+          steps: [
             {
-              status: Status.UNDEFINED,
-              step: this.step
+              sourceLocation: { uri: 'a.feature', line: 3 }
             }
           ]
+        })
+        this.eventBroadcaster.emit('test-step-finished', {
+          index: 0,
+          testCase: this.testCase,
+          result: { status: Status.UNDEFINED }
+        })
+        this.eventBroadcaster.emit('test-case-finished', {
+          sourceLocation: this.testCase.sourceLocation,
+          result: { status: Status.UNDEFINED }
         })
       })
 
@@ -226,14 +289,11 @@ describe('ProgressBarFormatter', function() {
     })
   })
 
-  describe('after features', function() {
+  describe('test-run-finished', function() {
     beforeEach(function() {
-      const featuresResult = {
-        duration: 0,
-        scenarioResults: [],
-        stepResults: []
-      }
-      this.progressBarFormatter.handleFeaturesResult(featuresResult)
+      this.eventBroadcaster.emit('test-run-finished', {
+        result: { duration: 0 }
+      })
     })
 
     it('outputs step totals, scenario totals, and duration', function() {

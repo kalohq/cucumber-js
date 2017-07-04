@@ -14,14 +14,15 @@ export default class TestCaseCollector {
     this.testCaseMap = {} // uri:line to {sourceLocation, steps, result}
   }
 
-  getTestCaseKey({ sourceLocation: { uri, line } }) {
+  getTestCaseKey({ uri, line }) {
     return `${uri}:${line}`
   }
 
-  getTestCaseData(testCase) {
+  getTestCaseData(sourceLocation) {
     return {
-      gherkinDocument: this.gherkinDocumentMap[testCase.sourceLocation.uri],
-      pickle: this.pickleMap[this.getTestCaseKey(testCase)]
+      gherkinDocument: this.gherkinDocumentMap[sourceLocation.uri],
+      pickle: this.pickleMap[this.getTestCaseKey(sourceLocation)],
+      testCase: this.testCaseMap[this.getTestCaseKey(sourceLocation)]
     }
   }
 
@@ -34,17 +35,17 @@ export default class TestCaseCollector {
   }
 
   storeTestCase({ sourceLocation, steps }) {
-    const key = this.getTestCaseKey({ sourceLocation })
+    const key = this.getTestCaseKey(sourceLocation)
     this.testCaseMap[key] = { sourceLocation, steps }
   }
 
   storeTestStepResult({ index, testCase, result }) {
-    const key = this.getTestCaseKey(testCase)
+    const key = this.getTestCaseKey(testCase.sourceLocation)
     this.testCaseMap[key].steps[index].result = result
   }
 
   storeTestCaseResult({ sourceLocation, result }) {
-    const key = this.getTestCaseKey({ sourceLocation })
+    const key = this.getTestCaseKey(sourceLocation)
     this.testCaseMap[key].result = result
   }
 }
