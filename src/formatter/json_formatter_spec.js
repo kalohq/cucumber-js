@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import JsonFormatter from './json_formatter'
 import Status from '../status'
 import EventEmitter from 'events'
