@@ -14,7 +14,6 @@ describe('SummaryFormatter', function() {
     this.eventBroadcaster = new EventEmitter()
     this.summaryFormatter = new SummaryFormatter({
       colorFns: getColorFns(false),
-      cwd: 'path/to/project',
       eventBroadcaster: this.eventBroadcaster,
       log: logFn,
       snippetBuilder: createMock({ build: 'snippet' })
