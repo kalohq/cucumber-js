@@ -84,8 +84,11 @@ export default class JsonFormatter extends Formatter {
           .map(step => [_.last(step.locations).line, step])
           .fromPairs()
           .value()
+        let isBeforeHook = true
         scenarioData.steps = testCase.steps.map(testStep => {
+          isBeforeHook = isBeforeHook && !testStep.sourceLocation
           return this.getStepData({
+            isBeforeHook,
             stepLineToKeywordMapping,
             stepLineToPickledStepMapping,
             testStep
@@ -127,6 +130,7 @@ export default class JsonFormatter extends Formatter {
   }
 
   getStepData({
+    isBeforeHook,
     stepLineToKeywordMapping,
     stepLineToPickledStepMapping,
     testStep
@@ -144,6 +148,7 @@ export default class JsonFormatter extends Formatter {
       data.line = line
       data.name = pickledStep.text
     } else {
+      data.keyword = isBeforeHook ? 'Before' : 'After'
       data.hidden = true
     }
     if (testStep.actionLocation) {

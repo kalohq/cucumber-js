@@ -57,6 +57,7 @@ function formatDocString(arg) {
 
 function formatStep({
   colorFns,
+  isBeforeHook,
   keyword,
   keywordType,
   pickledStep,
@@ -70,7 +71,7 @@ function formatStep({
   if (testStep.sourceLocation) {
     identifier = keyword + (pickledStep.text || '')
   } else {
-    identifier = 'Hook'
+    identifier = isBeforeHook ? 'Before' : 'After'
   }
 
   let text = colorFn(CHARACTERS[status] + ' ' + identifier)
@@ -139,8 +140,10 @@ export function formatIssue({
     .map(step => [_.last(step.locations).line, step])
     .fromPairs()
     .value()
+  let isBeforeHook = true
   let previousKeywordType = KeywordType.PRECONDITION
   _.each(testCase.steps, testStep => {
+    isBeforeHook = isBeforeHook && !testStep.sourceLocation
     let keyword, keywordType, pickledStep
     if (testStep.sourceLocation) {
       pickledStep = stepLineToPickledStepMapping[testStep.sourceLocation.line]
@@ -157,6 +160,7 @@ export function formatIssue({
     }
     const formattedStep = formatStep({
       colorFns,
+      isBeforeHook,
       keyword,
       keywordType,
       pickledStep,

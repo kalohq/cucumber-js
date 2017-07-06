@@ -35,8 +35,9 @@ defineSupportCode(({ Then }) => {
   })
 
   Then(/^the scenario "([^"]*)" has the steps$/, function(name, table) {
-    const scenario = findScenario(this.lastRun.jsonOutput, function(element) {
-      return element.name === name
+    const scenario = findScenario({
+      features: this.lastRun.jsonOutput,
+      scenarioPredicate: ['name', name]
     })
     const expectedNames = table.rows().map(row => row[0])
     const actualNames = scenario.steps.map(function(step) {
@@ -109,11 +110,9 @@ defineSupportCode(({ Then }) => {
     table
   ) {
     const scenarioIndex = cardinal === 'first' ? 0 : 1
-    const scenario = findScenario(this.lastRun.jsonOutput, function(
-      element,
-      index
-    ) {
-      return index === scenarioIndex
+    const scenario = findScenario({
+      features: this.lastRun.jsonOutput,
+      scenarioPredicate: (element, index) => index === scenarioIndex
     })
     const stepNames = scenario.steps.map(function(step) {
       return [step.name]

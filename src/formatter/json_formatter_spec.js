@@ -172,7 +172,7 @@ describe('JsonFormatter', function() {
       })
     })
 
-    describe('with a hook', function() {
+    describe('with hooks', function() {
       beforeEach(function() {
         this.eventBroadcaster.emit('test-case-prepared', {
           sourceLocation: this.testCase.sourceLocation,
@@ -183,6 +183,9 @@ describe('JsonFormatter', function() {
             {
               sourceLocation: { uri: 'a.feature', line: 6 },
               actionLocation: { uri: 'steps.js', line: 11 }
+            },
+            {
+              actionLocation: { uri: 'steps.js', line: 12 }
             }
           ]
         })
@@ -198,11 +201,20 @@ describe('JsonFormatter', function() {
         this.eventBroadcaster.emit('test-run-finished')
       })
 
-      it('does not output a line attribute and outputs a hidden attribute', function() {
+      it('outputs the before hook with special properties', function() {
         const features = JSON.parse(this.output)
-        const step = features[0].elements[0].steps[0]
-        expect(step).to.not.have.ownProperty('line')
-        expect(step.hidden).to.be.true
+        const beforeHook = features[0].elements[0].steps[0]
+        expect(beforeHook).to.not.have.ownProperty('line')
+        expect(beforeHook.keyword).to.eql('Before')
+        expect(beforeHook.hidden).to.be.true
+      })
+
+      it('outputs the after hook with special properties', function() {
+        const features = JSON.parse(this.output)
+        const beforeHook = features[0].elements[0].steps[2]
+        expect(beforeHook).to.not.have.ownProperty('line')
+        expect(beforeHook.keyword).to.eql('After')
+        expect(beforeHook.hidden).to.be.true
       })
     })
   })
