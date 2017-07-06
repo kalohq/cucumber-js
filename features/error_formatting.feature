@@ -29,7 +29,7 @@ Feature: Error formatting
       Failures:
 
       1) Scenario: some scenario # features/a.feature:2
-         ✖ Before # features/support/hooks.js:4
+         ✖ Hook # features/support/hooks.js:4
              Error: Fail
       """
     And the output contains the text:

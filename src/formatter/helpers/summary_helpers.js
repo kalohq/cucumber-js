@@ -16,7 +16,11 @@ export function formatSummary({ colorFns, testCaseMap, testRun }) {
   const testStepResults = []
   _.each(testCaseMap, ({ result, steps }) => {
     testCaseResults.push(result)
-    testStepResults.push(..._.map(steps, 'result'))
+    _.each(steps, testStep => {
+      if (testStep.sourceLocation) {
+        testStepResults.push(testStep.result)
+      }
+    })
   })
   const scenarioSummary = getCountSummary({
     colorFns,
