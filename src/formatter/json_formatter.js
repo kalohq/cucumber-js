@@ -1,8 +1,8 @@
 import _ from 'lodash'
 import Formatter from './'
 import Status from '../status'
-import util from 'util'
 import { formatLocation, TestCaseCollector } from './helpers'
+import { buildStepArgumentIterator } from '../step_arguments'
 
 export default class JsonFormatter extends Formatter {
   constructor(options) {
@@ -42,15 +42,11 @@ export default class JsonFormatter extends Formatter {
   }
 
   formatStepArguments(stepArguments) {
-    return _.map(stepArguments, arg => {
-      if (arg.hasOwnProperty('rows')) {
-        return this.formatDataTable(arg)
-      } else if (arg.hasOwnProperty('content')) {
-        return this.formatDocString(arg)
-      } else {
-        throw new Error(`Unknown argument type: ${util.inspect(arg)}`)
-      }
+    const iterator = buildStepArgumentIterator({
+      dataTable: this.formatDataTable.bind(this),
+      docString: this.formatDocString.bind(this)
     })
+    return _.map(stepArguments, iterator)
   }
 
   onTestRunFinished() {

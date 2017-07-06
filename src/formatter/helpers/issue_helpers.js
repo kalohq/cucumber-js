@@ -5,8 +5,8 @@ import indentString from 'indent-string'
 import Status from '../../status'
 import figures from 'figures'
 import Table from 'cli-table'
-import util from 'util'
 import KeywordType, { getStepKeywordType } from '../../keyword_type'
+import { buildStepArgumentIterator } from '../../step_arguments'
 
 const CHARACTERS = {
   [Status.AMBIGUOUS]: figures.cross,
@@ -82,17 +82,15 @@ function formatStep({
   text += '\n'
 
   if (pickledStep) {
-    _.each(pickledStep.arguments, arg => {
-      let str
-      if (arg.hasOwnProperty('rows')) {
-        str = formatDataTable(arg)
-      } else if (arg.hasOwnProperty('content')) {
-        str = formatDocString(arg)
-      } else {
-        throw new Error('Unknown argument type: ' + util.inspect(arg))
-      }
-      text += indentString(colorFn(str) + '\n', 4)
+    let str
+    const iterator = buildStepArgumentIterator({
+      dataTable: arg => (str = formatDataTable(arg)),
+      docString: arg => (str = formatDocString(arg))
     })
+    _.each(pickledStep.arguments, iterator)
+    if (str) {
+      text += indentString(colorFn(str) + '\n', 4)
+    }
   }
   const message = getStepMessage({
     colorFns,

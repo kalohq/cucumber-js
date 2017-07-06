@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import { CucumberExpressionGenerator } from 'cucumber-expressions'
 import KeywordType from '../../keyword_type'
+import { buildStepArgumentIterator } from '../../step_arguments'
 
 export default class StepDefinitionSnippetBuilder {
   constructor({ snippetSyntax, parameterTypeRegistry }) {
@@ -46,14 +47,10 @@ export default class StepDefinitionSnippetBuilder {
   }
 
   getStepArgumentParameters(step) {
-    return step.arguments.map(function(arg) {
-      if (arg.hasOwnProperty('rows')) {
-        return 'table'
-      } else if (arg.hasOwnProperty('content')) {
-        return 'string'
-      } else {
-        throw new Error(`Unknown argument type: ${arg}`)
-      }
+    const iterator = buildStepArgumentIterator({
+      dataTable: () => 'table',
+      docString: () => 'string'
     })
+    return step.arguments.map(iterator)
   }
 }

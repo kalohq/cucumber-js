@@ -1,4 +1,3 @@
-import path from 'path'
 import ScenarioFilter from './scenario_filter'
 
 describe('ScenarioFilter', function() {
