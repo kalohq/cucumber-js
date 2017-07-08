@@ -13,13 +13,19 @@ export default class TestCaseRunner {
     supportCodeLibrary,
     worldParameters
   }) {
-    this.attachmentManager = new AttachmentManager()
+    const attachmentManager = new AttachmentManager(({ data, media }) => {
+      this.emit('test-step-attachment', {
+        index: this.testStepIndex,
+        data,
+        media
+      })
+    })
     this.eventBroadcaster = eventBroadcaster
     this.skip = skip
     this.testCase = testCase
     this.supportCodeLibrary = supportCodeLibrary
     this.world = new supportCodeLibrary.World({
-      attach: ::this.attachmentManager.create,
+      attach: ::attachmentManager.create,
       parameters: worldParameters
     })
     this.beforeHookDefinitions = this.getBeforeHookDefinitions()
@@ -99,7 +105,6 @@ export default class TestCaseRunner {
 
   invokeStep(step, stepDefinition) {
     return StepRunner.run({
-      attachmentManager: this.attachmentManager,
       defaultTimeout: this.supportCodeLibrary.defaultTimeout,
       scenarioResult: this.scenarioResult,
       step,

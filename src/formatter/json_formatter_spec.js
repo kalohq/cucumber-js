@@ -191,11 +191,6 @@ describe('JsonFormatter', function() {
             }
           ]
         })
-        this.eventBroadcaster.emit('test-step-finished', {
-          index: 0,
-          testCase: this.testCase,
-          result: { duration: 1, status: Status.PASSED }
-        })
         this.eventBroadcaster.emit('test-case-finished', {
           sourceLocation: this.testCase.sourceLocation,
           result: { duration: 1, status: Status.PASSED }
@@ -217,6 +212,49 @@ describe('JsonFormatter', function() {
         expect(beforeHook).to.not.have.ownProperty('line')
         expect(beforeHook.keyword).to.eql('After')
         expect(beforeHook.hidden).to.be.true
+      })
+    })
+
+    describe('with attachments', function() {
+      beforeEach(function() {
+        this.eventBroadcaster.emit('test-case-prepared', {
+          sourceLocation: this.testCase.sourceLocation,
+          steps: [
+            {
+              sourceLocation: { uri: 'a.feature', line: 6 },
+              actionLocation: { uri: 'steps.js', line: 11 }
+            }
+          ]
+        })
+        this.eventBroadcaster.emit('test-step-attachment', {
+          testCase: {
+            sourceLocation: this.testCase.sourceLocation
+          },
+          index: 0,
+          data: 'first data',
+          media: { type: 'first media type' }
+        })
+        this.eventBroadcaster.emit('test-step-attachment', {
+          testCase: {
+            sourceLocation: this.testCase.sourceLocation
+          },
+          index: 0,
+          data: 'second data',
+          media: { type: 'second media type' }
+        })
+        this.eventBroadcaster.emit('test-case-finished', {
+          sourceLocation: this.testCase.sourceLocation,
+          result: { duration: 1, status: Status.PASSED }
+        })
+        this.eventBroadcaster.emit('test-run-finished')
+      })
+
+      it('outputs the step with embeddings', function() {
+        const features = JSON.parse(this.output)
+        expect(features[0].elements[0].steps[0].embeddings).to.eql([
+          { data: 'first data', media: { type: 'first media type' } },
+          { data: 'second data', media: { type: 'second media type' } }
+        ])
       })
     })
   })
@@ -328,30 +366,6 @@ describe('JsonFormatter', function() {
             { cells: ['gg', 'h', 'iii'] }
           ]
         }
-      ])
-    })
-  })
-
-  describe('with attachments', function() {
-    beforeEach(function() {
-      const attachment1 = {
-        mimeType: 'first mime type',
-        data: 'first data'
-      }
-      const attachment2 = {
-        mimeType: 'second mime type',
-        data: 'second data'
-      }
-      this.stepResult.attachments = [attachment1, attachment2]
-      this.jsonFormatter.handleStepResult(this.stepResult)
-      this.jsonFormatter.handleAfterFeatures({})
-    })
-
-    it('outputs the step with embeddings', function() {
-      const features = JSON.parse(this.output)
-      expect(features[0].elements[0].steps[0].embeddings).to.eql([
-        { data: 'first data', mime_type: 'first mime type' },
-        { data: 'second data', mime_type: 'second mime type' }
       ])
     })
   })

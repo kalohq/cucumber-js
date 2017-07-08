@@ -161,6 +161,9 @@ export default class JsonFormatter extends Formatter {
         data.result.error_message = exception.stack || exception
       }
     }
+    if (_.size(testStep.attachments) > 0) {
+      data.embeddings = testStep.attachments
+    }
     return data
   }
 

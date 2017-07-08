@@ -7,7 +7,6 @@ import Promise from 'bluebird'
 const { beginTiming, endTiming } = Time
 
 async function run({
-  attachmentManager,
   defaultTimeout,
   scenarioResult,
   step,
@@ -48,10 +47,6 @@ async function run({
       error = stepDefinition.getInvalidCodeLengthMessage(parameters)
     }
   }
-
-  // TODO
-  // const attachments = attachmentManager.getAll()
-  attachmentManager.reset()
 
   const testStepResult = { duration: endTiming() }
 

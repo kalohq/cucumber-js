@@ -6,6 +6,7 @@ export default class EventDataCollector {
       .on('gherkin-document', ::this.storeGherkinDocument)
       .on('pickle-accepted', ::this.storePickle)
       .on('test-case-prepared', ::this.storeTestCase)
+      .on('test-step-attachment', ::this.storeTestStepAttachment)
       .on('test-step-finished', ::this.storeTestStepResult)
       .on('test-case-finished', ::this.storeTestCaseResult)
     this.gherkinDocumentMap = {} // uri to gherkinDocument
@@ -60,6 +61,15 @@ export default class EventDataCollector {
   storeTestCase({ sourceLocation, steps }) {
     const key = this.getTestCaseKey(sourceLocation)
     this.testCaseMap[key] = { sourceLocation, steps }
+  }
+
+  storeTestStepAttachment({ index, testCase, data, media }) {
+    const key = this.getTestCaseKey(testCase.sourceLocation)
+    const step = this.testCaseMap[key].steps[index]
+    if (!step.attachments) {
+      step.attachments = []
+    }
+    step.attachments.push({ data, media })
   }
 
   storeTestStepResult({ index, testCase, result }) {
