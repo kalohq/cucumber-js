@@ -4,6 +4,7 @@ import SummaryFormatter from './summary_formatter'
 import figures from 'figures'
 import { EventEmitter } from 'events'
 import Gherkin from 'gherkin'
+import EventDataCollector from '../event_data_collector'
 
 describe('SummaryFormatter', function() {
   beforeEach(function() {
@@ -15,6 +16,7 @@ describe('SummaryFormatter', function() {
     this.summaryFormatter = new SummaryFormatter({
       colorFns: getColorFns(false),
       eventBroadcaster: this.eventBroadcaster,
+      eventDataCollector: new EventDataCollector(this.eventBroadcaster),
       log: logFn,
       snippetBuilder: createMock({ build: 'snippet' })
     })

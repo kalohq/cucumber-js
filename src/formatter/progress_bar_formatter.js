@@ -1,15 +1,11 @@
 import { formatIssue, formatSummary, isIssue } from './helpers'
 import Formatter from './'
 import ProgressBar from 'progress'
-import TestCaseCollector from './helpers/test_case_collector'
 
 // Inspired by https://github.com/thekompanee/fuubar and https://github.com/martinciu/fuubar-cucumber
 export default class ProgressBarFormatter extends Formatter {
   constructor(options) {
     super(options)
-    this.testCaseCollector = new TestCaseCollector({
-      eventBroadcaster: options.eventBroadcaster
-    })
     options.eventBroadcaster
       .on('pickle-accepted', ::this.incrementStepCount)
       .once('test-case-started', ::this.initializeProgressBar)
@@ -35,7 +31,7 @@ export default class ProgressBarFormatter extends Formatter {
   }
 
   logProgress({ index, testCase: { sourceLocation } }) {
-    const { testCase } = this.testCaseCollector.getTestCaseData(sourceLocation)
+    const { testCase } = this.eventDataCollector.getTestCaseData(sourceLocation)
     if (testCase.steps[index].sourceLocation) {
       this.progressBar.tick()
     }
@@ -48,7 +44,7 @@ export default class ProgressBarFormatter extends Formatter {
         gherkinDocument,
         pickle,
         testCase
-      } = this.testCaseCollector.getTestCaseData(sourceLocation)
+      } = this.eventDataCollector.getTestCaseData(sourceLocation)
       this.progressBar.interrupt(
         formatIssue({
           colorFns: this.colorFns,
@@ -66,7 +62,7 @@ export default class ProgressBarFormatter extends Formatter {
     this.log(
       formatSummary({
         colorFns: this.colorFns,
-        testCaseMap: this.testCaseCollector.testCaseMap,
+        testCaseMap: this.eventDataCollector.testCaseMap,
         testRun
       })
     )

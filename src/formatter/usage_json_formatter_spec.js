@@ -1,6 +1,7 @@
 import UsageJsonFormatter from './usage_json_formatter'
 import EventEmitter from 'events'
 import Gherkin from 'gherkin'
+import EventDataCollector from '../event_data_collector'
 
 describe('UsageJsonFormatter', function() {
   describe('handleFeaturesResult', function() {
@@ -31,6 +32,7 @@ describe('UsageJsonFormatter', function() {
       }
       new UsageJsonFormatter({
         eventBroadcaster,
+        eventDataCollector: new EventDataCollector(eventBroadcaster),
         log: logFn,
         supportCodeLibrary
       })

@@ -15,10 +15,10 @@ function buildEmptyMapping(stepDefinitions) {
   return mapping
 }
 
-function buildMapping({ stepDefinitions, testCaseCollector }) {
+function buildMapping({ stepDefinitions, eventDataCollector }) {
   const mapping = buildEmptyMapping(stepDefinitions)
-  _.each(testCaseCollector.testCaseMap, testCase => {
-    const { pickle } = testCaseCollector.getTestCaseData(
+  _.each(eventDataCollector.testCaseMap, testCase => {
+    const { pickle } = eventDataCollector.getTestCaseData(
       testCase.sourceLocation
     )
     const stepLineToPickledStepMapping = _.chain(pickle.steps)
@@ -76,7 +76,7 @@ function buildResult(mapping) {
     .value()
 }
 
-export function getUsage({ stepDefinitions, testCaseCollector }) {
-  const mapping = buildMapping({ stepDefinitions, testCaseCollector })
+export function getUsage({ stepDefinitions, eventDataCollector }) {
+  const mapping = buildMapping({ stepDefinitions, eventDataCollector })
   return buildResult(mapping)
 }

@@ -1,21 +1,18 @@
 import _ from 'lodash'
-import { formatLocation, getUsage, TestCaseCollector } from './helpers'
+import { formatLocation, getUsage } from './helpers'
 import Formatter from './'
 import Table from 'cli-table'
 
 export default class UsageFormatter extends Formatter {
   constructor(options) {
     super(options)
-    this.testCaseCollector = new TestCaseCollector({
-      eventBroadcaster: options.eventBroadcaster
-    })
     options.eventBroadcaster.on('test-run-finished', ::this.logUsage)
   }
 
   logUsage() {
     const usage = getUsage({
       stepDefinitions: this.supportCodeLibrary.stepDefinitions,
-      testCaseCollector: this.testCaseCollector
+      eventDataCollector: this.eventDataCollector
     })
     if (usage.length === 0) {
       this.log('No step definitions')

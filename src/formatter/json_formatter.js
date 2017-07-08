@@ -1,15 +1,12 @@
 import _ from 'lodash'
 import Formatter from './'
 import Status from '../status'
-import { formatLocation, TestCaseCollector } from './helpers'
+import { formatLocation } from './helpers'
 import { buildStepArgumentIterator } from '../step_arguments'
 
 export default class JsonFormatter extends Formatter {
   constructor(options) {
     super(options)
-    this.testCaseCollector = new TestCaseCollector({
-      eventBroadcaster: options.eventBroadcaster
-    })
     options.eventBroadcaster.on('test-run-finished', ::this.onTestRunFinished)
   }
 
@@ -51,7 +48,7 @@ export default class JsonFormatter extends Formatter {
 
   onTestRunFinished() {
     const groupedTestCases = {}
-    _.each(this.testCaseCollector.testCaseMap, testCase => {
+    _.each(this.eventDataCollector.testCaseMap, testCase => {
       const { sourceLocation: { uri } } = testCase
       if (!groupedTestCases[uri]) {
         groupedTestCases[uri] = []
@@ -59,7 +56,7 @@ export default class JsonFormatter extends Formatter {
       groupedTestCases[uri].push(testCase)
     })
     const features = _.map(groupedTestCases, (group, uri) => {
-      const { feature } = this.testCaseCollector.gherkinDocumentMap[uri]
+      const { feature } = this.eventDataCollector.gherkinDocumentMap[uri]
       const featureData = this.getFeatureData(feature, uri)
       const stepLineToKeywordMapping = _.chain(feature.children)
         .map('steps')
@@ -72,7 +69,7 @@ export default class JsonFormatter extends Formatter {
         .fromPairs()
         .value()
       featureData.elements = group.map(testCase => {
-        const { pickle } = this.testCaseCollector.getTestCaseData(
+        const { pickle } = this.eventDataCollector.getTestCaseData(
           testCase.sourceLocation
         )
         const scenarioData = this.getScenarioData({

@@ -1,14 +1,11 @@
 import _ from 'lodash'
-import { formatIssue, formatSummary, TestCaseCollector } from './helpers'
+import { formatIssue, formatSummary } from './helpers'
 import Formatter from './'
 import Status from '../status'
 
 export default class SummaryFormatter extends Formatter {
   constructor(options) {
     super(options)
-    this.testCaseCollector = new TestCaseCollector({
-      eventBroadcaster: options.eventBroadcaster
-    })
     options.eventBroadcaster.on('test-run-finished', ::this.logSummary)
   }
 
@@ -26,7 +23,7 @@ export default class SummaryFormatter extends Formatter {
   logSummary(testRun) {
     const failures = []
     const warnings = []
-    _.each(this.testCaseCollector.testCaseMap, testCase => {
+    _.each(this.eventDataCollector.testCaseMap, testCase => {
       if (this.isTestCaseFailure(testCase)) {
         failures.push(testCase)
       } else if (this.isTestCaseWarning(testCase)) {
@@ -42,7 +39,7 @@ export default class SummaryFormatter extends Formatter {
     this.log(
       formatSummary({
         colorFns: this.colorFns,
-        testCaseMap: this.testCaseCollector.testCaseMap,
+        testCaseMap: this.eventDataCollector.testCaseMap,
         testRun
       })
     )
@@ -54,7 +51,7 @@ export default class SummaryFormatter extends Formatter {
       const {
         gherkinDocument,
         pickle
-      } = this.testCaseCollector.getTestCaseData(testCase.sourceLocation)
+      } = this.eventDataCollector.getTestCaseData(testCase.sourceLocation)
       this.log(
         formatIssue({
           colorFns: this.colorFns,

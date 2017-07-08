@@ -1,6 +1,7 @@
 import UsageFormatter from './usage_formatter'
 import EventEmitter from 'events'
 import Gherkin from 'gherkin'
+import EventDataCollector from '../event_data_collector'
 
 describe('UsageFormatter', function() {
   describe('handleFeaturesResult', function() {
@@ -15,6 +16,7 @@ describe('UsageFormatter', function() {
       }
       new UsageFormatter({
         eventBroadcaster: this.eventBroadcaster,
+        eventDataCollector: new EventDataCollector(this.eventBroadcaster),
         log: logFn,
         supportCodeLibrary: this.supportCodeLibrary
       })

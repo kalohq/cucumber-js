@@ -3,6 +3,7 @@ import ProgressBarFormatter from './progress_bar_formatter'
 import Status from '../status'
 import { EventEmitter } from 'events'
 import Gherkin from 'gherkin'
+import EventDataCollector from '../event_data_collector'
 
 describe('ProgressBarFormatter', function() {
   beforeEach(function() {
@@ -16,6 +17,7 @@ describe('ProgressBarFormatter', function() {
       colorFns,
       cwd: 'path/to/project',
       eventBroadcaster: this.eventBroadcaster,
+      eventDataCollector: new EventDataCollector(this.eventBroadcaster),
       log: logFn,
       snippetBuilder: createMock({ build: 'snippet' }),
       stream: {}

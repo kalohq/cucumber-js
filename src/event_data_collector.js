@@ -1,5 +1,7 @@
-export default class TestCaseCollector {
-  constructor({ eventBroadcaster }) {
+import _ from 'lodash'
+
+export default class EventDataCollector {
+  constructor(eventBroadcaster) {
     eventBroadcaster
       .on('gherkin-document', ::this.storeGherkinDocument)
       .on('pickle-accepted', ::this.storePickle)
@@ -21,6 +23,30 @@ export default class TestCaseCollector {
       pickle: this.pickleMap[this.getTestCaseKey(sourceLocation)],
       testCase: this.testCaseMap[this.getTestCaseKey(sourceLocation)]
     }
+  }
+
+  getTestStepData({ testCase: { sourceLocation }, index }) {
+    const { gherkinDocument, pickle, testCase } = this.getTestCaseData(
+      sourceLocation
+    )
+    const result = {}
+    result.testStep = testCase.steps[index]
+    if (result.testStep.sourceLocation) {
+      const { line } = result.testStep.sourceLocation
+      const stepLineToPickledStepMapping = _.chain(pickle.steps)
+        .map(step => [_.last(step.locations).line, step])
+        .fromPairs()
+        .value()
+      result.pickledStep = stepLineToPickledStepMapping[line]
+      const stepLineToKeywordMapping = _.chain(gherkinDocument.feature.children)
+        .map('steps')
+        .flatten()
+        .map(step => [step.location.line, step.keyword])
+        .fromPairs()
+        .value()
+      result.gherkinKeyword = stepLineToKeywordMapping[line]
+    }
+    return result
   }
 
   storeGherkinDocument({ document, uri }) {

@@ -2,6 +2,7 @@ import getColorFns from './get_color_fns'
 import ProgressFormatter from './progress_formatter'
 import Status from '../status'
 import { EventEmitter } from 'events'
+import EventDataCollector from '../event_data_collector'
 
 describe('ProgressFormatter', function() {
   beforeEach(function() {
@@ -14,6 +15,7 @@ describe('ProgressFormatter', function() {
     this.progressFormatter = new ProgressFormatter({
       colorFns,
       eventBroadcaster: this.eventBroadcaster,
+      eventDataCollector: new EventDataCollector(this.eventBroadcaster),
       log: logFn
     })
   })

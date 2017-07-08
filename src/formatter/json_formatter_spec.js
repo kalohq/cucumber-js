@@ -2,6 +2,7 @@ import JsonFormatter from './json_formatter'
 import Status from '../status'
 import EventEmitter from 'events'
 import Gherkin from 'gherkin'
+import EventDataCollector from '../event_data_collector'
 
 describe('JsonFormatter', function() {
   beforeEach(function() {
@@ -12,6 +13,7 @@ describe('JsonFormatter', function() {
     }
     this.jsonFormatter = new JsonFormatter({
       eventBroadcaster: this.eventBroadcaster,
+      eventDataCollector: new EventDataCollector(this.eventBroadcaster),
       log: logFn
     })
   })

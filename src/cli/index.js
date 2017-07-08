@@ -12,6 +12,7 @@ import SupportCodeFns from '../support_code_fns'
 import SupportCodeLibraryBuilder from '../support_code_library/builder'
 import * as I18n from './i18n'
 import EventEmitter from 'events'
+import EventDataCollector from '../event_data_collector'
 
 export default class Cli {
   constructor({ argv, cwd, stdout }) {
@@ -32,6 +33,7 @@ export default class Cli {
     supportCodeLibrary
   }) {
     const streamsToClose = []
+    const eventDataCollector = new EventDataCollector(eventBroadcaster)
     await Promise.map(formats, async ({ type, outputTo }) => {
       let stream = this.stdout
       if (outputTo) {
@@ -40,7 +42,13 @@ export default class Cli {
         streamsToClose.push(stream)
       }
       const typeOptions = _.assign(
-        { eventBroadcaster, log: ::stream.write, stream, supportCodeLibrary },
+        {
+          eventBroadcaster,
+          eventDataCollector,
+          log: ::stream.write,
+          stream,
+          supportCodeLibrary
+        },
         formatOptions
       )
       return FormatterBuilder.build(type, typeOptions)
