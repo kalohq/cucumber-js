@@ -45,6 +45,12 @@ defineSupportCode(function({ When, Then }) {
     expect(actualOutput).to.include(expectedOutput)
   })
 
+  Then(/^the error output contains the text:$/, function(text) {
+    const actualOutput = normalizeText(this.lastRun.errorOutput)
+    const expectedOutput = normalizeText(text)
+    expect(actualOutput).to.include(expectedOutput)
+  })
+
   Then(/^the output contains the text snippets:$/, function(table) {
     const actualOutput = normalizeText(this.lastRun.output)
     table.rows().forEach(row => {

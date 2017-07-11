@@ -40,6 +40,9 @@ export async function getTestCases({
           eventBroadcaster.emit('pickle-rejected', { pickle, uri })
         }
       }
+      if (event.type === 'attachment') {
+        throw new Error(event.data)
+      }
     })
   })
   return result
