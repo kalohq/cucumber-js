@@ -1,4 +1,4 @@
-let common = [
+var common = [
   '--compiler js:babel-register',
   '--format progress-bar',
   '--format rerun:@rerun.txt',
@@ -6,6 +6,6 @@ let common = [
 ].join(' ')
 
 module.exports = {
-  default: common,
-  'node-4': common + ' --tags "not @node-6"'
-}
+  'default': common,
+  'node-4': common + ' --tags "not @node-6"',
+};
