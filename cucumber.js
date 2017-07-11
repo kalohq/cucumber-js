@@ -1,4 +1,4 @@
-let common = [
+var common = [
   '--compiler js:babel-register',
   '--format progress-bar',
   '--format rerun:@rerun.txt',
