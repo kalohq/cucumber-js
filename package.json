@@ -181,9 +181,9 @@
     "tmp": "0.0.31"
   },
   "scripts": {
-    "build-local-continuous": "babel src --watch -d lib --ignore '**/*_spec.js' --source-maps inline",
-    "build-local": "babel src -d lib --ignore '**/*_spec.js' --source-maps inline",
-    "build-release": "BABEL_ENV=browser browserify src/index.js -o dist/cucumber.js -t babelify --standalone Cucumber --source-maps inline",
+    "build-local-continuous": "babel src --watch -d lib --ignore '**/*_spec.js'",
+    "build-local": "babel src -d lib --ignore '**/*_spec.js'",
+    "build-release": "BABEL_ENV=browser browserify src/index.js -o dist/cucumber.js -t babelify --standalone Cucumber",
     "feature-test": "node ./bin/cucumber.js",
     "lint-dependencies": "dependency-lint",
     "lint-code": "eslint \"{example,features,scripts,src,test}/**/*.js\"",
