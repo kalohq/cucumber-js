@@ -1,8 +1,11 @@
-import Status from '../status'
-import StackTraceFilter from './stack_trace_filter'
-import TestCaseRunner from './test_case_runner'
-import Promise from 'bluebird'
 import _ from 'lodash'
+import { formatLocation } from '../formatter/helpers'
+import Promise from 'bluebird'
+import StackTraceFilter from './stack_trace_filter'
+import Status from '../status'
+import TestCaseRunner from './test_case_runner'
+import UserCodeRunner from '../user_code_runner'
+import VError from 'verror'
 
 export default class Runtime {
   // options - {dryRun, failFast, filterStacktraces, strict}
@@ -16,6 +19,25 @@ export default class Runtime {
       duration: 0,
       success: true
     }
+  }
+
+  async runTestRunHooks(key, name) {
+    await Promise.each(this.supportCodeLibrary[key], async hookDefinition => {
+      const { error } = await UserCodeRunner.run({
+        argsArray: [],
+        fn: hookDefinition.code,
+        thisArg: null,
+        timeoutInMilliseconds:
+          hookDefinition.timeout || this.supportCodeLibrary.defaultTimeout
+      })
+      if (error) {
+        const location = formatLocation(hookDefinition)
+        throw new VError(
+          error,
+          `${name} hook errored, process exiting: ${location}`
+        )
+      }
+    })
   }
 
   async runTestCase(testCase) {
@@ -42,7 +64,9 @@ export default class Runtime {
       this.stackTraceFilter.filter()
     }
     this.eventBroadcaster.emit('test-run-started')
+    await this.runTestRunHooks('beforeTestRunHookDefinitions', 'a BeforeAll')
     await Promise.each(this.testCases, ::this.runTestCase)
+    await this.runTestRunHooks('afterTestRunHookDefinitions', 'an AfterAll')
     this.eventBroadcaster.emit('test-run-finished', { result: this.result })
     if (this.options.filterStacktraces) {
       this.stackTraceFilter.unfilter()

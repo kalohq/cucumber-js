@@ -1,32 +1,56 @@
-import { defineHook, defineStep } from './helpers'
+import { defineTestRunHook, defineTestCaseHook, defineStep } from './helpers'
 
 describe('helpers', function() {
-  describe('defineHook', function() {
+  describe('defineTestRunHook', function() {
     beforeEach(function() {
-      this.defineHook = defineHook('', [])
+      this.defineTestRunHook = defineTestRunHook('', [])
     })
 
     it('throws on invalid options/fn type', function() {
       expect(() => {
-        this.defineHook([])
+        this.defineTestRunHook([])
       }).to.throw(/Invalid first argument: should be a object or function$/)
-    })
-
-    it('throws on invalid options.tags type', function() {
-      expect(() => {
-        this.defineHook({ tags: [] }, function() {})
-      }).to.throw(/Invalid "options.tags": should be a string$/)
     })
 
     it('throws on invalid options.timeout type', function() {
       expect(() => {
-        this.defineHook({ timeout: '1' }, function() {})
+        this.defineTestRunHook({ timeout: '1' }, function() {})
       }).to.throw(/Invalid "options.timeout": should be a integer$/)
     })
 
     it('throws on invalid fn type', function() {
       expect(() => {
-        this.defineHook({}, 'code')
+        this.defineTestRunHook({}, 'code')
+      }).to.throw(/Invalid second argument: should be a function$/)
+    })
+  })
+
+  describe('defineTestCaseHook', function() {
+    beforeEach(function() {
+      this.defineTestCaseHook = defineTestCaseHook('', [])
+    })
+
+    it('throws on invalid options/fn type', function() {
+      expect(() => {
+        this.defineTestCaseHook([])
+      }).to.throw(/Invalid first argument: should be a object or function$/)
+    })
+
+    it('throws on invalid options.tags type', function() {
+      expect(() => {
+        this.defineTestCaseHook({ tags: [] }, function() {})
+      }).to.throw(/Invalid "options.tags": should be a string$/)
+    })
+
+    it('throws on invalid options.timeout type', function() {
+      expect(() => {
+        this.defineTestCaseHook({ timeout: '1' }, function() {})
+      }).to.throw(/Invalid "options.timeout": should be a integer$/)
+    })
+
+    it('throws on invalid fn type', function() {
+      expect(() => {
+        this.defineTestCaseHook({}, 'code')
       }).to.throw(/Invalid second argument: should be a function$/)
     })
   })

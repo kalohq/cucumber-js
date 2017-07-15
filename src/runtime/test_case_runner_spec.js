@@ -1,4 +1,4 @@
-import HookDefinition from '../models/hook_definition'
+import TestCaseHookDefinition from '../models/test_case_hook_definition'
 import TestCaseRunner from './test_case_runner'
 import Status from '../status'
 import StepRunner from './step_runner'
@@ -25,8 +25,8 @@ describe('TestCaseRunner', function() {
       uri: 'path/to/feature'
     }
     this.supportCodeLibrary = {
-      afterHookDefinitions: [],
-      beforeHookDefinitions: [],
+      afterTestCaseHookDefinitions: [],
+      beforeTestCaseHookDefinitions: [],
       defaultTimeout: 5000,
       stepDefinitions: [],
       parameterTypeRegistry: {},
@@ -425,7 +425,7 @@ describe('TestCaseRunner', function() {
 
     describe('with an before hook and step when skipping', function() {
       beforeEach(async function() {
-        const hookDefinition = new HookDefinition({
+        const testCaseHookDefinition = new TestCaseHookDefinition({
           code() {
             throw new Error('error')
           },
@@ -433,7 +433,9 @@ describe('TestCaseRunner', function() {
           options: {},
           uri: 'path/to/hooks'
         })
-        this.supportCodeLibrary.beforeHookDefinitions = [hookDefinition]
+        this.supportCodeLibrary.beforeTestCaseHookDefinitions = [
+          testCaseHookDefinition
+        ]
         this.step = { uri: 'path/to/feature', locations: [{ line: 2 }] }
         const stepDefinition = {
           uri: 'path/to/steps',
@@ -509,7 +511,7 @@ describe('TestCaseRunner', function() {
 
     describe('with an after hook when skipping', function() {
       beforeEach(async function() {
-        const hookDefinition = new HookDefinition({
+        const testCaseHookDefinition = new TestCaseHookDefinition({
           code() {
             throw new Error('error')
           },
@@ -517,7 +519,9 @@ describe('TestCaseRunner', function() {
           options: {},
           uri: 'path/to/hooks'
         })
-        this.supportCodeLibrary.afterHookDefinitions = [hookDefinition]
+        this.supportCodeLibrary.afterTestCaseHookDefinitions = [
+          testCaseHookDefinition
+        ]
         this.step = { uri: 'path/to/feature', locations: [{ line: 2 }] }
         const stepDefinition = {
           uri: 'path/to/steps',

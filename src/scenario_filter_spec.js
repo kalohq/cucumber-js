@@ -30,7 +30,7 @@ describe('ScenarioFilter', function() {
     describe('line filters', function() {
       beforeEach(function() {
         this.scenarioFilter = new ScenarioFilter({
-          featurePaths: ['a.feature', 'b.feature:1:2'],
+          featurePaths: ['features/a.feature', 'features/b.feature:1:2'],
           names: [],
           tagExpressions: []
         })
@@ -38,7 +38,7 @@ describe('ScenarioFilter', function() {
 
       describe('scenario in feature without line specified', function() {
         beforeEach(function() {
-          this.input.uri = 'a.feature'
+          this.input.uri = 'features/a.feature'
         })
 
         it('returns true', function() {
@@ -48,7 +48,7 @@ describe('ScenarioFilter', function() {
 
       describe('scenario in feature with line specified', function() {
         beforeEach(function() {
-          this.input.uri = 'b.feature'
+          this.input.uri = 'features/b.feature'
         })
 
         describe('scenario line matches', function() {
@@ -293,20 +293,19 @@ describe('ScenarioFilter', function() {
 
     describe('line, name, and tag filters', function() {
       beforeEach(function() {
-        this.scenarioPath = 'b.feature'
+        this.input.uri = 'features/b.feature'
       })
 
       describe('scenario matches all filters', function() {
         beforeEach(function() {
           this.scenarioFilter = new ScenarioFilter({
-            featurePaths: ['b.feature:1:2'],
+            featurePaths: ['features/b.feature:1:2'],
             names: ['nameA'],
             tagExpressions: ['@tagA']
           })
           this.input.pickle.locations = [{ line: 1 }]
           this.input.pickle.name = 'nameA descriptionA'
           this.input.pickle.tags = [{ name: '@tagA' }]
-          this.input.uri = this.scenarioPath
         })
 
         it('returns true', function() {
@@ -317,7 +316,7 @@ describe('ScenarioFilter', function() {
       describe('scenario matches some filters', function() {
         beforeEach(function() {
           this.scenarioFilter = new ScenarioFilter({
-            featurePaths: ['b.feature:1:2'],
+            featurePaths: ['features/b.feature:1:2'],
             names: ['nameA'],
             tagExpressions: ['tagA']
           })
@@ -333,7 +332,7 @@ describe('ScenarioFilter', function() {
       describe('scenario matches no filters', function() {
         beforeEach(function() {
           this.scenarioFilter = new ScenarioFilter({
-            featurePaths: ['b.feature:1:2'],
+            featurePaths: ['features/b.feature:1:2'],
             names: ['nameA'],
             tagExpression: '@tagA'
           })

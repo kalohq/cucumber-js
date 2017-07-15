@@ -4,10 +4,13 @@ import isGenerator from 'is-generator'
 import path from 'path'
 import TransformLookupBuilder from './parameter_type_registry_builder'
 import * as helpers from './helpers'
+
 function build({ cwd, fns }) {
   const options = {
-    afterHookDefinitions: [],
-    beforeHookDefinitions: [],
+    afterTestRunHookDefinitions: [],
+    afterTestCaseHookDefinitions: [],
+    beforeTestRunHookDefinitions: [],
+    beforeTestCaseHookDefinitions: [],
     defaultTimeout: 5000,
     stepDefinitions: [],
     parameterTypeRegistry: TransformLookupBuilder.build(),
@@ -22,8 +25,22 @@ function build({ cwd, fns }) {
     defineParameterType: helpers.defineParameterType(
       options.parameterTypeRegistry
     ),
-    After: helpers.defineHook(cwd, options.afterHookDefinitions),
-    Before: helpers.defineHook(cwd, options.beforeHookDefinitions),
+    After: helpers.defineTestCaseHook(
+      cwd,
+      options.afterTestCaseHookDefinitions
+    ),
+    AfterAll: helpers.defineTestRunHook(
+      cwd,
+      options.afterTestRunHookDefinitions
+    ),
+    Before: helpers.defineTestCaseHook(
+      cwd,
+      options.beforeTestCaseHookDefinitions
+    ),
+    BeforeAll: helpers.defineTestRunHook(
+      cwd,
+      options.beforeTestRunHookDefinitions
+    ),
     defineStep: helpers.defineStep(cwd, options.stepDefinitions),
     setDefaultTimeout(milliseconds) {
       options.defaultTimeout = milliseconds
@@ -40,12 +57,19 @@ function build({ cwd, fns }) {
   wrapDefinitions({
     cwd,
     definitionFunctionWrapper,
-    definitions: _.chain(['afterHook', 'beforeHook', 'step'])
+    definitions: _.chain([
+      'afterTestRunHook',
+      'afterTestCaseHook',
+      'beforeTestRunHook',
+      'beforeTestCaseHook',
+      'step'
+    ])
       .map(key => options[key + 'Definitions'])
       .flatten()
       .value()
   })
-  options.afterHookDefinitions.reverse()
+  options.afterTestCaseHookDefinitions.reverse()
+  options.afterTestRunHookDefinitions.reverse()
   return options
 }
 

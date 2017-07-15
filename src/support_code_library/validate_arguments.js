@@ -23,7 +23,12 @@ const fnValidation = {
 }
 
 const validations = {
-  defineHook: [
+  defineTestRunHook: [
+    _.assign({ identifier: 'first argument' }, optionsValidation),
+    optionsTimeoutValidation,
+    _.assign({ identifier: 'second argument' }, fnValidation)
+  ],
+  defineTestCaseHook: [
     _.assign({ identifier: 'first argument' }, optionsValidation),
     {
       identifier: '"options.tags"',

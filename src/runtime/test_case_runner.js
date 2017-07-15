@@ -79,7 +79,7 @@ export default class TestCaseRunner {
   }
 
   getAfterHookDefinitions() {
-    return this.supportCodeLibrary.afterHookDefinitions.filter(
+    return this.supportCodeLibrary.afterTestCaseHookDefinitions.filter(
       hookDefinition => {
         return hookDefinition.appliesToTestCase(this.testCase)
       }
@@ -87,7 +87,7 @@ export default class TestCaseRunner {
   }
 
   getBeforeHookDefinitions() {
-    return this.supportCodeLibrary.beforeHookDefinitions.filter(
+    return this.supportCodeLibrary.beforeTestCaseHookDefinitions.filter(
       hookDefinition => {
         return hookDefinition.appliesToTestCase(this.testCase)
       }

@@ -2,9 +2,9 @@ import _ from 'lodash'
 import ArgvParser from './argv_parser'
 import fs from 'mz/fs'
 import Gherkin from 'gherkin'
+import path from 'path'
 import ProfileLoader from './profile_loader'
 import Promise from 'bluebird'
-import path from 'path'
 
 export async function getExpandedArgv({ argv, cwd }) {
   let { options } = ArgvParser.parse(argv)

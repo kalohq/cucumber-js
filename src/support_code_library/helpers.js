@@ -1,13 +1,14 @@
 import util from 'util'
 import { ParameterType } from 'cucumber-expressions'
 import { formatLocation } from '../formatter/helpers'
-import HookDefinition from '../models/hook_definition'
+import TestCaseHookDefinition from '../models/test_case_hook_definition'
+import TestRunHookDefinition from '../models/test_run_hook_definition'
 import path from 'path'
 import StackTrace from 'stacktrace-js'
 import StepDefinition from '../models/step_definition'
 import validateArguments from './validate_arguments'
 
-export function defineHook(cwd, collection) {
+export function defineTestCaseHook(cwd, collection) {
   return (options, code) => {
     if (typeof options === 'string') {
       options = { tags: options }
@@ -18,10 +19,39 @@ export function defineHook(cwd, collection) {
     const { line, uri } = getDefinitionLineAndUri(cwd)
     validateArguments({
       args: { code, options },
-      fnName: 'defineHook',
-      relativeUri: formatLocation({ line, uri })
+      fnName: 'defineTestCaseHook',
+      location: formatLocation({ line, uri })
     })
-    const hookDefinition = new HookDefinition({ code, line, options, uri })
+    const hookDefinition = new TestCaseHookDefinition({
+      code,
+      line,
+      options,
+      uri
+    })
+    collection.push(hookDefinition)
+  }
+}
+
+export function defineTestRunHook(cwd, collection) {
+  return (options, code) => {
+    if (typeof options === 'string') {
+      options = { tags: options }
+    } else if (typeof options === 'function') {
+      code = options
+      options = {}
+    }
+    const { line, uri } = getDefinitionLineAndUri(cwd)
+    validateArguments({
+      args: { code, options },
+      fnName: 'defineTestRunHook',
+      location: formatLocation({ line, uri })
+    })
+    const hookDefinition = new TestRunHookDefinition({
+      code,
+      line,
+      options,
+      uri
+    })
     collection.push(hookDefinition)
   }
 }

@@ -31,7 +31,9 @@ export const defineStep = proxySupportCode('defineStep')
 export const addTransform = proxySupportCode('addTransform')
 export const defineParameterType = proxySupportCode('defineParameterType')
 export const After = proxySupportCode('After')
+export const AfterAll = proxySupportCode('AfterAll')
 export const Before = proxySupportCode('Before')
+export const BeforeAll = proxySupportCode('BeforeAll')
 export const setDefaultTimeout = proxySupportCode('setDefaultTimeout')
 export const setDefinitionFunctionWrapper = proxySupportCode(
   'setDefinitionFunctionWrapper'

@@ -1,6 +1,6 @@
-import HookDefinition from './hook_definition'
+import TestCaseHookDefinition from './test_case_hook_definition'
 
-describe('HookDefinition', function() {
+describe('TestCaseHookDefinition', function() {
   describe('appliesToTestCase', function() {
     beforeEach(function() {
       this.input = {
@@ -13,36 +13,41 @@ describe('HookDefinition', function() {
 
     describe('no tags', function() {
       beforeEach(function() {
-        this.hookDefinition = new HookDefinition({ options: {} })
+        this.testCaseHookDefinition = new TestCaseHookDefinition({
+          options: {}
+        })
       })
 
       it('returns true', function() {
-        expect(this.hookDefinition.appliesToTestCase(this.input)).to.be.true
+        expect(this.testCaseHookDefinition.appliesToTestCase(this.input)).to.be
+          .true
       })
     })
 
     describe('tags match', function() {
       beforeEach(function() {
         this.input.pickle.tags = [{ name: '@tagA' }]
-        this.hookDefinition = new HookDefinition({
+        this.testCaseHookDefinition = new TestCaseHookDefinition({
           options: { tags: '@tagA' }
         })
       })
 
       it('returns true', function() {
-        expect(this.hookDefinition.appliesToTestCase(this.input)).to.be.true
+        expect(this.testCaseHookDefinition.appliesToTestCase(this.input)).to.be
+          .true
       })
     })
 
     describe('tags do not match', function() {
       beforeEach(function() {
-        this.hookDefinition = new HookDefinition({
+        this.testCaseHookDefinition = new TestCaseHookDefinition({
           options: { tags: '@tagA' }
         })
       })
 
       it('returns false', function() {
-        expect(this.hookDefinition.appliesToTestCase(this.input)).to.be.false
+        expect(this.testCaseHookDefinition.appliesToTestCase(this.input)).to.be
+          .false
       })
     })
   })
