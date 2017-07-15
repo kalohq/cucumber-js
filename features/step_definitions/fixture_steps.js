@@ -11,9 +11,16 @@ defineSupportCode(function({ Then }) {
   ) {
     const fixturePath = path.join(__dirname, '..', 'fixtures', filePath)
     const expected = await fs.readFile(fixturePath, 'utf8')
-    const normalizedActual = this.lastRun.output
-      .replace(/"duration":\d*/g, '"duration":0')
-      .replace(path.sep, '/')
-    expect(normalizedActual).to.eql(expected)
+    const normalizedActual = this.lastRun.output.replace(
+      /"duration":\d*/g,
+      '"duration":0'
+    )
+    const normalizedExpected = expected.replace(
+      /"uri":"([^"]*)"/g,
+      (match, uri) => {
+        return `"uri":"${path.normalize(uri)}"`
+      }
+    )
+    expect(normalizedActual).to.eql(normalizedExpected)
   })
 })

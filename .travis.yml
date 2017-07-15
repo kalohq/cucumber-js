@@ -30,6 +30,6 @@ matrix:
     - node_js: "6"
       script: "yarn test"
     - node_js: "4"
-      script: "yarn run feature-test -- --profile node-4 --format progress"
+      script: "yarn run feature-test -- --profile node-4"
 
 sudo: false
