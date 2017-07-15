@@ -12,12 +12,11 @@ const STATUS_CHARACTER_MAPPING = {
 
 export default class ProgressFormatter extends SummaryFormatter {
   constructor(options) {
+    options.eventBroadcaster.on('test-run-finished', () => {
+      this.log('\n\n')
+    })
     super(options)
-    options.eventBroadcaster
-      .on('test-step-finished', ::this.logProgress)
-      .prependListener('test-run-finished', () => {
-        this.log('\n\n')
-      })
+    options.eventBroadcaster.on('test-step-finished', ::this.logProgress)
   }
 
   logProgress({ result }) {
