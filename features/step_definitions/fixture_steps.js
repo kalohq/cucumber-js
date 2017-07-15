@@ -13,7 +13,7 @@ defineSupportCode(function({ Then }) {
     const expected = await fs.readFile(fixturePath, 'utf8')
     const normalizedActual = this.lastRun.output
       .replace(/"duration":\d*/g, '"duration":0')
-      .replace(/\//g, path.sep)
+      .replace(path.sep, '/')
     expect(normalizedActual).to.eql(expected)
   })
 })
