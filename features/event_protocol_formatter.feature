@@ -53,7 +53,7 @@ Feature: Event Protocol Formatter
       import {defineSupportCode} from 'cucumber'
 
       defineSupportCode(({Given}) => {
-        Given(/^a step$/, function() { throw new Error('my error') })
+        Given(/^a step$/, function(callback) { callback(new Error('my error')) })
       })
       """
     When I run cucumber.js with `-f event-protocol`
