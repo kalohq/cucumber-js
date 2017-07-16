@@ -1,3 +1,4 @@
+import escapeStringRegexp from 'escape-string-regexp'
 import Formatter from './'
 import path from 'path'
 
@@ -38,7 +39,8 @@ export default class EventProtocolFormatter extends Formatter {
 
   formatJsonData(key, value) {
     if (value instanceof Error) {
-      return value.stack.replace(new RegExp(this.cwd + path.sep, 'g'), '')
+      const pathToRemove = escapeStringRegexp(this.cwd + path.sep)
+      return value.stack.replace(new RegExp(pathToRemove, 'g'), '')
     } else {
       return value
     }
