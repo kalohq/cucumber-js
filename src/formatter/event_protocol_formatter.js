@@ -27,6 +27,11 @@ export default class EventProtocolFormatter extends Formatter {
         this.logEvent(eventName, data)
       )
     })
+
+    const pathSepRegexp = new RegExp(escapeStringRegexp(path.sep), 'g')
+    const pathToRemove =
+      this.cwd.replace(pathSepRegexp, path.posix.sep) + path.posix.sep
+    this.pathRegexp = new RegExp(escapeStringRegexp(pathToRemove), 'g')
   }
 
   logEvent(eventName, data) {
@@ -39,8 +44,7 @@ export default class EventProtocolFormatter extends Formatter {
 
   formatJsonData(key, value) {
     if (value instanceof Error) {
-      const pathToRemove = escapeStringRegexp(this.cwd + path.sep)
-      return value.stack.replace(new RegExp(pathToRemove, 'g'), '')
+      return value.stack.replace(this.pathRegexp, '')
     } else {
       return value
     }
