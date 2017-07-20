@@ -1,5 +1,5 @@
-import { getStepLineToKeywordMap } from '../gherkin_document_parser'
-import { getStepLineToPickledStepMap } from '../pickle_parser'
+import { getStepLineToKeywordMap } from './gherkin_document_parser'
+import { getStepLineToPickledStepMap } from './pickle_parser'
 
 export default class EventDataCollector {
   constructor(eventBroadcaster) {

@@ -30,7 +30,7 @@ export async function getTestCases({
       path.relative(cwd, featurePath)
     )
     events.forEach(event => {
-      eventBroadcaster.emit(event.type, event)
+      eventBroadcaster.emit(event.type, _.omit(event, 'type'))
       if (event.type === 'pickle') {
         const { pickle, uri } = event
         if (scenarioFilter.matches({ pickle, uri })) {

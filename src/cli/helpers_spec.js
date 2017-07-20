@@ -43,22 +43,15 @@ describe('helpers', function() {
         expect(this.onSource).to.have.been.calledWith({
           data: '',
           media: { encoding: 'utf-8', type: 'text/vnd.cucumber.gherkin+plain' },
-          type: 'source',
           uri: this.relativeFeaturePath
         })
       })
 
       it('emits a gherkin-document event', function() {
         expect(this.onGherkinDocument).to.have.been.calledOnce
-        expect(this.onGherkinDocument).to.have.been.calledWith({
-          document: {
-            comments: [],
-            feature: undefined,
-            type: 'GherkinDocument'
-          },
-          type: 'gherkin-document',
-          uri: this.relativeFeaturePath
-        })
+        const arg = this.onGherkinDocument.firstCall.args[0]
+        expect(arg).to.have.keys(['document', 'uri'])
+        expect(arg.uri).to.eql(this.relativeFeaturePath)
       })
 
       it('does not emit pickle events', function() {
@@ -94,88 +87,15 @@ describe('helpers', function() {
         expect(this.onSource).to.have.been.calledWith({
           data: 'Feature: a\nScenario: b\nGiven a step',
           media: { encoding: 'utf-8', type: 'text/vnd.cucumber.gherkin+plain' },
-          type: 'source',
           uri: this.relativeFeaturePath
         })
       })
 
       it('emits a gherkin-document event', function() {
         expect(this.onGherkinDocument).to.have.been.calledOnce
-        expect(this.onGherkinDocument).to.have.been.calledWith({
-          document: {
-            comments: [],
-            feature: {
-              children: [
-                {
-                  description: undefined,
-                  keyword: 'Scenario',
-                  location: { column: 1, line: 2 },
-                  name: 'b',
-                  steps: [
-                    {
-                      argument: undefined,
-                      keyword: 'Given ',
-                      location: { column: 1, line: 3 },
-                      text: 'a step',
-                      type: 'Step'
-                    }
-                  ],
-                  tags: [],
-                  type: 'Scenario'
-                }
-              ],
-              description: undefined,
-              keyword: 'Feature',
-              language: 'en',
-              location: { column: 1, line: 1 },
-              name: 'a',
-              tags: [],
-              type: 'Feature'
-            },
-            type: 'GherkinDocument'
-          },
-          type: 'gherkin-document',
-          uri: this.relativeFeaturePath
-        })
-      })
-
-      it('emits a pickle and pickle-rejected event', function() {
-        expect(this.onPickle).to.have.been.calledOnce
-        expect(this.onPickle).to.have.been.calledWith({
-          pickle: {
-            language: 'en',
-            locations: [{ column: 1, line: 2 }],
-            name: 'b',
-            steps: [
-              {
-                arguments: [],
-                locations: [{ column: 7, line: 3 }],
-                text: 'a step'
-              }
-            ],
-            tags: []
-          },
-          type: 'pickle',
-          uri: this.relativeFeaturePath
-        })
-        expect(this.onPickleAccepted).not.to.have.been.called
-        expect(this.onPickleRejected).to.have.been.calledOnce
-        expect(this.onPickleRejected).to.have.been.calledWith({
-          pickle: {
-            language: 'en',
-            locations: [{ column: 1, line: 2 }],
-            name: 'b',
-            steps: [
-              {
-                arguments: [],
-                locations: [{ column: 7, line: 3 }],
-                text: 'a step'
-              }
-            ],
-            tags: []
-          },
-          uri: this.relativeFeaturePath
-        })
+        const arg = this.onGherkinDocument.firstCall.args[0]
+        expect(arg).to.have.keys(['document', 'uri'])
+        expect(arg.uri).to.eql(this.relativeFeaturePath)
       })
     })
 
@@ -197,24 +117,9 @@ describe('helpers', function() {
       })
 
       it('returns the test case', function() {
-        expect(this.result).to.eql([
-          {
-            pickle: {
-              language: 'en',
-              locations: [{ column: 1, line: 2 }],
-              name: 'b',
-              steps: [
-                {
-                  arguments: [],
-                  locations: [{ column: 7, line: 3 }],
-                  text: 'a step'
-                }
-              ],
-              tags: []
-            },
-            uri: this.relativeFeaturePath
-          }
-        ])
+        expect(this.result).to.have.lengthOf(1)
+        expect(this.result[0]).to.have.keys(['pickle', 'uri'])
+        expect(this.result[0].uri).to.eql(this.relativeFeaturePath)
       })
 
       it('emits a source event', function() {
@@ -222,88 +127,26 @@ describe('helpers', function() {
         expect(this.onSource).to.have.been.calledWith({
           data: 'Feature: a\nScenario: b\nGiven a step',
           media: { encoding: 'utf-8', type: 'text/vnd.cucumber.gherkin+plain' },
-          type: 'source',
           uri: this.relativeFeaturePath
         })
       })
 
       it('emits a gherkin-document event', function() {
         expect(this.onGherkinDocument).to.have.been.calledOnce
-        expect(this.onGherkinDocument).to.have.been.calledWith({
-          document: {
-            comments: [],
-            feature: {
-              children: [
-                {
-                  description: undefined,
-                  keyword: 'Scenario',
-                  location: { column: 1, line: 2 },
-                  name: 'b',
-                  steps: [
-                    {
-                      argument: undefined,
-                      keyword: 'Given ',
-                      location: { column: 1, line: 3 },
-                      text: 'a step',
-                      type: 'Step'
-                    }
-                  ],
-                  tags: [],
-                  type: 'Scenario'
-                }
-              ],
-              description: undefined,
-              keyword: 'Feature',
-              language: 'en',
-              location: { column: 1, line: 1 },
-              name: 'a',
-              tags: [],
-              type: 'Feature'
-            },
-            type: 'GherkinDocument'
-          },
-          type: 'gherkin-document',
-          uri: this.relativeFeaturePath
-        })
+        const arg = this.onGherkinDocument.firstCall.args[0]
+        expect(arg).to.have.keys(['document', 'uri'])
+        expect(arg.uri).to.eql(this.relativeFeaturePath)
       })
 
       it('emits a pickle and pickle-accepted event', function() {
         expect(this.onPickle).to.have.been.calledOnce
-        expect(this.onPickle).to.have.been.calledWith({
-          pickle: {
-            language: 'en',
-            locations: [{ column: 1, line: 2 }],
-            name: 'b',
-            steps: [
-              {
-                arguments: [],
-                locations: [{ column: 7, line: 3 }],
-                text: 'a step'
-              }
-            ],
-            tags: []
-          },
-          type: 'pickle',
-          uri: this.relativeFeaturePath
-        })
         expect(this.onPickleAccepted).to.have.been.calledOnce
-        expect(this.onPickleAccepted).to.have.been.calledWith({
-          pickle: {
-            language: 'en',
-            locations: [{ column: 1, line: 2 }],
-            name: 'b',
-            steps: [
-              {
-                arguments: [],
-                locations: [{ column: 7, line: 3 }],
-                text: 'a step'
-              }
-            ],
-            tags: []
-          },
-          uri: this.relativeFeaturePath
-        })
         expect(this.onPickleRejected).not.to.have.been.called
+        const onPickleArg = this.onPickle.firstCall.args[0]
+        expect(onPickleArg).to.have.keys(['pickle', 'uri'])
+        expect(onPickleArg.uri).to.eql(this.relativeFeaturePath)
+        const onPickleAcceptedArg = this.onPickleAccepted.firstCall.args[0]
+        expect(onPickleAcceptedArg).to.eql(onPickleArg)
       })
     })
   })
