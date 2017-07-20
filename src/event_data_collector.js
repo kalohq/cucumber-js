@@ -1,4 +1,5 @@
-import _ from 'lodash'
+import { getStepLineToKeywordMap } from '../gherkin_document_parser'
+import { getStepLineToPickledStepMap } from '../pickle_parser'
 
 export default class EventDataCollector {
   constructor(eventBroadcaster) {
@@ -30,22 +31,11 @@ export default class EventDataCollector {
     const { gherkinDocument, pickle, testCase } = this.getTestCaseData(
       sourceLocation
     )
-    const result = {}
-    result.testStep = testCase.steps[index]
+    const result = { testStep: testCase.steps[index] }
     if (result.testStep.sourceLocation) {
       const { line } = result.testStep.sourceLocation
-      const stepLineToPickledStepMapping = _.chain(pickle.steps)
-        .map(step => [_.last(step.locations).line, step])
-        .fromPairs()
-        .value()
-      result.pickledStep = stepLineToPickledStepMapping[line]
-      const stepLineToKeywordMapping = _.chain(gherkinDocument.feature.children)
-        .map('steps')
-        .flatten()
-        .map(step => [step.location.line, step.keyword])
-        .fromPairs()
-        .value()
-      result.gherkinKeyword = stepLineToKeywordMapping[line]
+      result.gherkinKeyword = getStepLineToKeywordMap(gherkinDocument)[line]
+      result.pickledStep = getStepLineToPickledStepMap(pickle)[line]
     }
     return result
   }
