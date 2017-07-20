@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import { formatLocation } from '../location_helpers'
+import { getStepLineToPickledStepMap } from '../../../pickle_parser'
 
 function buildEmptyMapping(stepDefinitions) {
   const mapping = {}
@@ -21,19 +22,14 @@ function buildMapping({ stepDefinitions, eventDataCollector }) {
     const { pickle } = eventDataCollector.getTestCaseData(
       testCase.sourceLocation
     )
-    const stepLineToPickledStepMapping = _.chain(pickle.steps)
-      .map(step => {
-        return [_.last(step.locations).line, step]
-      })
-      .fromPairs()
-      .value()
+    const stepLineToPickledStepMap = getStepLineToPickledStepMap(pickle)
     testCase.steps.forEach(testStep => {
       const { actionLocation, sourceLocation, result: { duration } } = testStep
       if (sourceLocation) {
         const location = formatLocation(actionLocation)
         const match = {
           line: sourceLocation.line,
-          text: stepLineToPickledStepMapping[sourceLocation.line].text,
+          text: stepLineToPickledStepMap[sourceLocation.line].text,
           uri: sourceLocation.uri
         }
         if (isFinite(duration)) {
