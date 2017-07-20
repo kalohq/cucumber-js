@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import { validateInstall } from './install_validator'
 import { getExpandedArgv, getTestCases } from './helpers'
 import ConfigurationBuilder from './configuration_builder'
@@ -40,16 +39,14 @@ export default class Cli {
         stream = fs.createWriteStream(null, { fd })
         streamsToClose.push(stream)
       }
-      const typeOptions = _.assign(
-        {
-          eventBroadcaster,
-          eventDataCollector,
-          log: ::stream.write,
-          stream,
-          supportCodeLibrary
-        },
-        formatOptions
-      )
+      const typeOptions = {
+        eventBroadcaster,
+        eventDataCollector,
+        log: ::stream.write,
+        stream,
+        supportCodeLibrary,
+        ...formatOptions
+      }
       return FormatterBuilder.build(type, typeOptions)
     })
     return function() {
