@@ -30,7 +30,8 @@ describe('helpers', function() {
         this.result = await getTestCases({
           cwd: this.tmpDir,
           eventBroadcaster: this.eventBroadcaster,
-          featurePaths: [featurePath]
+          featurePaths: [featurePath],
+          pickleFilterOptions: {}
         })
       })
 
@@ -74,7 +75,9 @@ describe('helpers', function() {
           cwd: this.tmpDir,
           eventBroadcaster: this.eventBroadcaster,
           featurePaths: [featurePath],
-          scenarioFilter: createMock({ matches: false })
+          pickleFilterOptions: {
+            featurePaths: [`${this.relativeFeaturePath}:5`]
+          }
         })
       })
 
@@ -112,7 +115,7 @@ describe('helpers', function() {
           cwd: this.tmpDir,
           eventBroadcaster: this.eventBroadcaster,
           featurePaths: [featurePath],
-          scenarioFilter: createMock({ matches: true })
+          pickleFilterOptions: {}
         })
       })
 

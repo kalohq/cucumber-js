@@ -7,7 +7,6 @@ import fs from 'mz/fs'
 import path from 'path'
 import Promise from 'bluebird'
 import Runtime from '../runtime'
-import ScenarioFilter from '../scenario_filter'
 import SupportCodeFns from '../support_code_fns'
 import SupportCodeLibraryBuilder from '../support_code_library/builder'
 import * as I18n from './i18n'
@@ -83,9 +82,6 @@ export default class Cli {
     const supportCodeLibrary = this.getSupportCodeLibrary(
       configuration.supportCodePaths
     )
-    const scenarioFilter = new ScenarioFilter(
-      configuration.scenarioFilterOptions
-    )
     const eventBroadcaster = new EventEmitter()
     const cleanup = await this.initializeFormatters({
       eventBroadcaster,
@@ -97,7 +93,7 @@ export default class Cli {
       cwd: this.cwd,
       eventBroadcaster,
       featurePaths: configuration.featurePaths,
-      scenarioFilter
+      pickleFilterOptions: configuration.pickleFilterOptions
     })
     const runtime = new Runtime({
       eventBroadcaster,

@@ -1,6 +1,6 @@
-import ScenarioFilter from './scenario_filter'
+import PickleFilter from './pickle_filter'
 
-describe('ScenarioFilter', function() {
+describe('PickleFilter', function() {
   describe('matches', function() {
     beforeEach(function() {
       this.input = {
@@ -15,7 +15,7 @@ describe('ScenarioFilter', function() {
 
     describe('no filters', function() {
       beforeEach(function() {
-        this.scenarioFilter = new ScenarioFilter({
+        this.pickleFilter = new PickleFilter({
           featurePaths: ['features'],
           names: [],
           tagExpressions: []
@@ -23,13 +23,13 @@ describe('ScenarioFilter', function() {
       })
 
       it('returns true', function() {
-        expect(this.scenarioFilter.matches(this.input)).to.be.true
+        expect(this.pickleFilter.matches(this.input)).to.be.true
       })
     })
 
     describe('line filters', function() {
       beforeEach(function() {
-        this.scenarioFilter = new ScenarioFilter({
+        this.pickleFilter = new PickleFilter({
           featurePaths: ['features/a.feature', 'features/b.feature:1:2'],
           names: [],
           tagExpressions: []
@@ -42,7 +42,7 @@ describe('ScenarioFilter', function() {
         })
 
         it('returns true', function() {
-          expect(this.scenarioFilter.matches(this.input)).to.be.true
+          expect(this.pickleFilter.matches(this.input)).to.be.true
         })
       })
 
@@ -57,7 +57,7 @@ describe('ScenarioFilter', function() {
           })
 
           it('returns true', function() {
-            expect(this.scenarioFilter.matches(this.input)).to.be.true
+            expect(this.pickleFilter.matches(this.input)).to.be.true
           })
         })
 
@@ -67,7 +67,7 @@ describe('ScenarioFilter', function() {
           })
 
           it('returns false', function() {
-            expect(this.scenarioFilter.matches(this.input)).to.be.false
+            expect(this.pickleFilter.matches(this.input)).to.be.false
           })
         })
       })
@@ -76,7 +76,7 @@ describe('ScenarioFilter', function() {
     describe('name filters', function() {
       describe('should match name A', function() {
         beforeEach(function() {
-          this.scenarioFilter = new ScenarioFilter({
+          this.pickleFilter = new PickleFilter({
             featurePaths: ['features'],
             names: ['nameA'],
             tagExpressions: []
@@ -89,7 +89,7 @@ describe('ScenarioFilter', function() {
           })
 
           it('returns true', function() {
-            expect(this.scenarioFilter.matches(this.input)).to.be.true
+            expect(this.pickleFilter.matches(this.input)).to.be.true
           })
         })
 
@@ -99,14 +99,14 @@ describe('ScenarioFilter', function() {
           })
 
           it('returns false', function() {
-            expect(this.scenarioFilter.matches(this.input)).to.be.false
+            expect(this.pickleFilter.matches(this.input)).to.be.false
           })
         })
       })
 
       describe('should match name A or B', function() {
         beforeEach(function() {
-          this.scenarioFilter = new ScenarioFilter({
+          this.pickleFilter = new PickleFilter({
             featurePaths: ['features'],
             names: ['nameA', 'nameB'],
             tagExpressions: []
@@ -119,7 +119,7 @@ describe('ScenarioFilter', function() {
           })
 
           it('returns true', function() {
-            expect(this.scenarioFilter.matches(this.input)).to.be.true
+            expect(this.pickleFilter.matches(this.input)).to.be.true
           })
         })
 
@@ -129,7 +129,7 @@ describe('ScenarioFilter', function() {
           })
 
           it('returns true', function() {
-            expect(this.scenarioFilter.matches(this.input)).to.be.true
+            expect(this.pickleFilter.matches(this.input)).to.be.true
           })
         })
 
@@ -139,7 +139,7 @@ describe('ScenarioFilter', function() {
           })
 
           it('returns false', function() {
-            expect(this.scenarioFilter.matches(this.input)).to.be.false
+            expect(this.pickleFilter.matches(this.input)).to.be.false
           })
         })
       })
@@ -148,7 +148,7 @@ describe('ScenarioFilter', function() {
     describe('tag filters', function() {
       describe('should have tag A', function() {
         beforeEach(function() {
-          this.scenarioFilter = new ScenarioFilter({
+          this.pickleFilter = new PickleFilter({
             featurePaths: ['features'],
             names: [],
             tagExpression: '@tagA'
@@ -161,20 +161,20 @@ describe('ScenarioFilter', function() {
           })
 
           it('returns true', function() {
-            expect(this.scenarioFilter.matches(this.input)).to.be.true
+            expect(this.pickleFilter.matches(this.input)).to.be.true
           })
         })
 
         describe('scenario does not have tag A', function() {
           it('returns false', function() {
-            expect(this.scenarioFilter.matches(this.input)).to.be.false
+            expect(this.pickleFilter.matches(this.input)).to.be.false
           })
         })
       })
 
       describe('should not have tag A', function() {
         beforeEach(function() {
-          this.scenarioFilter = new ScenarioFilter({
+          this.pickleFilter = new PickleFilter({
             featurePaths: ['features'],
             names: [],
             tagExpression: 'not @tagA'
@@ -187,20 +187,20 @@ describe('ScenarioFilter', function() {
           })
 
           it('returns false', function() {
-            expect(this.scenarioFilter.matches(this.input)).to.be.false
+            expect(this.pickleFilter.matches(this.input)).to.be.false
           })
         })
 
         describe('scenario does not have tag A', function() {
           it('returns true', function() {
-            expect(this.scenarioFilter.matches(this.input)).to.be.true
+            expect(this.pickleFilter.matches(this.input)).to.be.true
           })
         })
       })
 
       describe('should have tag A and B', function() {
         beforeEach(function() {
-          this.scenarioFilter = new ScenarioFilter({
+          this.pickleFilter = new PickleFilter({
             featurePaths: ['features'],
             names: [],
             tagExpression: '@tagA and @tagB'
@@ -213,7 +213,7 @@ describe('ScenarioFilter', function() {
           })
 
           it('returns true', function() {
-            expect(this.scenarioFilter.matches(this.input)).to.be.true
+            expect(this.pickleFilter.matches(this.input)).to.be.true
           })
         })
 
@@ -223,7 +223,7 @@ describe('ScenarioFilter', function() {
           })
 
           it('returns false', function() {
-            expect(this.scenarioFilter.matches(this.input)).to.be.false
+            expect(this.pickleFilter.matches(this.input)).to.be.false
           })
         })
 
@@ -233,20 +233,20 @@ describe('ScenarioFilter', function() {
           })
 
           it('returns false', function() {
-            expect(this.scenarioFilter.matches(this.input)).to.be.false
+            expect(this.pickleFilter.matches(this.input)).to.be.false
           })
         })
 
         describe('scenario does have tag A or B', function() {
           it('returns false', function() {
-            expect(this.scenarioFilter.matches(this.input)).to.be.false
+            expect(this.pickleFilter.matches(this.input)).to.be.false
           })
         })
       })
 
       describe('should have tag A or B', function() {
         beforeEach(function() {
-          this.scenarioFilter = new ScenarioFilter({
+          this.pickleFilter = new PickleFilter({
             featurePaths: ['features'],
             names: [],
             tagExpression: '@tagA or @tagB'
@@ -259,7 +259,7 @@ describe('ScenarioFilter', function() {
           })
 
           it('returns true', function() {
-            expect(this.scenarioFilter.matches(this.input)).to.be.true
+            expect(this.pickleFilter.matches(this.input)).to.be.true
           })
         })
 
@@ -269,7 +269,7 @@ describe('ScenarioFilter', function() {
           })
 
           it('returns true', function() {
-            expect(this.scenarioFilter.matches(this.input)).to.be.true
+            expect(this.pickleFilter.matches(this.input)).to.be.true
           })
         })
 
@@ -279,13 +279,13 @@ describe('ScenarioFilter', function() {
           })
 
           it('returns true', function() {
-            expect(this.scenarioFilter.matches(this.input)).to.be.true
+            expect(this.pickleFilter.matches(this.input)).to.be.true
           })
         })
 
         describe('scenario does have tag A or B', function() {
           it('returns false', function() {
-            expect(this.scenarioFilter.matches(this.input)).to.be.false
+            expect(this.pickleFilter.matches(this.input)).to.be.false
           })
         })
       })
@@ -298,7 +298,7 @@ describe('ScenarioFilter', function() {
 
       describe('scenario matches all filters', function() {
         beforeEach(function() {
-          this.scenarioFilter = new ScenarioFilter({
+          this.pickleFilter = new PickleFilter({
             featurePaths: ['features/b.feature:1:2'],
             names: ['nameA'],
             tagExpressions: ['@tagA']
@@ -309,13 +309,13 @@ describe('ScenarioFilter', function() {
         })
 
         it('returns true', function() {
-          expect(this.scenarioFilter.matches(this.input)).to.be.true
+          expect(this.pickleFilter.matches(this.input)).to.be.true
         })
       })
 
       describe('scenario matches some filters', function() {
         beforeEach(function() {
-          this.scenarioFilter = new ScenarioFilter({
+          this.pickleFilter = new PickleFilter({
             featurePaths: ['features/b.feature:1:2'],
             names: ['nameA'],
             tagExpressions: ['tagA']
@@ -325,13 +325,13 @@ describe('ScenarioFilter', function() {
         })
 
         it('returns false', function() {
-          expect(this.scenarioFilter.matches(this.input)).to.be.false
+          expect(this.pickleFilter.matches(this.input)).to.be.false
         })
       })
 
       describe('scenario matches no filters', function() {
         beforeEach(function() {
-          this.scenarioFilter = new ScenarioFilter({
+          this.pickleFilter = new PickleFilter({
             featurePaths: ['features/b.feature:1:2'],
             names: ['nameA'],
             tagExpression: '@tagA'
@@ -341,7 +341,7 @@ describe('ScenarioFilter', function() {
         })
 
         it('returns false', function() {
-          expect(this.scenarioFilter.matches(this.input)).to.be.false
+          expect(this.pickleFilter.matches(this.input)).to.be.false
         })
       })
     })

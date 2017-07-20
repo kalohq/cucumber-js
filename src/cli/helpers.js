@@ -5,6 +5,7 @@ import Gherkin from 'gherkin'
 import path from 'path'
 import ProfileLoader from './profile_loader'
 import Promise from 'bluebird'
+import PickleFilter from '../pickle_filter'
 
 export async function getExpandedArgv({ argv, cwd }) {
   let { options } = ArgvParser.parse(argv)
@@ -20,8 +21,9 @@ export async function getTestCases({
   cwd,
   eventBroadcaster,
   featurePaths,
-  scenarioFilter
+  pickleFilterOptions
 }) {
+  const pickleFilter = new PickleFilter(pickleFilterOptions)
   const result = []
   await Promise.each(featurePaths, async featurePath => {
     const source = await fs.readFile(featurePath, 'utf8')
@@ -33,7 +35,7 @@ export async function getTestCases({
       eventBroadcaster.emit(event.type, _.omit(event, 'type'))
       if (event.type === 'pickle') {
         const { pickle, uri } = event
-        if (scenarioFilter.matches({ pickle, uri })) {
+        if (pickleFilter.matches({ pickle, uri })) {
           eventBroadcaster.emit('pickle-accepted', { pickle, uri })
           result.push({ pickle, uri })
         } else {

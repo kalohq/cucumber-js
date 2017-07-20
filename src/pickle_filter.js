@@ -4,7 +4,7 @@ import TagExpressionParser from 'cucumber-tag-expressions/lib/tag_expression_par
 const FEATURE_LINENUM_REGEXP = /^(.*?)((?::[\d]+)+)?$/
 const tagExpressionParser = new TagExpressionParser()
 
-export default class ScenarioFilter {
+export default class PickleFilter {
   constructor({ featurePaths, names, tagExpression }) {
     this.featureUriToLinesMapping = this.getFeatureUriToLinesMapping(
       featurePaths || []
