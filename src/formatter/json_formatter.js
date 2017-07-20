@@ -3,6 +3,15 @@ import Formatter from './'
 import Status from '../status'
 import { formatLocation } from './helpers'
 import { buildStepArgumentIterator } from '../step_arguments'
+import {
+  getStepLineToKeywordMap,
+  getScenarioLineToDescriptionMap
+} from '../gherkin_document_parser'
+import {
+  getScenarioDescription,
+  getStepLineToPickledStepMap,
+  getStepKeyword
+} from '../pickle_parser'
 
 export default class JsonFormatter extends Formatter {
   constructor(options) {
@@ -56,18 +65,12 @@ export default class JsonFormatter extends Formatter {
       groupedTestCases[uri].push(testCase)
     })
     const features = _.map(groupedTestCases, (group, uri) => {
-      const { feature } = this.eventDataCollector.gherkinDocumentMap[uri]
-      const featureData = this.getFeatureData(feature, uri)
-      const stepLineToKeywordMapping = _.chain(feature.children)
-        .map('steps')
-        .flatten()
-        .map(step => [step.location.line, step.keyword])
-        .fromPairs()
-        .value()
-      const scenarioLineToDescriptionMapping = _.chain(feature.children)
-        .map(element => [element.location.line, element.description])
-        .fromPairs()
-        .value()
+      const gherkinDocument = this.eventDataCollector.gherkinDocumentMap[uri]
+      const featureData = this.getFeatureData(gherkinDocument.feature, uri)
+      const stepLineToKeywordMap = getStepLineToKeywordMap(gherkinDocument)
+      const scenarioLineToDescriptionMap = getScenarioLineToDescriptionMap(
+        gherkinDocument
+      )
       featureData.elements = group.map(testCase => {
         const { pickle } = this.eventDataCollector.getTestCaseData(
           testCase.sourceLocation
@@ -75,19 +78,16 @@ export default class JsonFormatter extends Formatter {
         const scenarioData = this.getScenarioData({
           featureId: featureData.id,
           pickle,
-          scenarioLineToDescriptionMapping
+          scenarioLineToDescriptionMap
         })
-        const stepLineToPickledStepMapping = _.chain(pickle.steps)
-          .map(step => [_.last(step.locations).line, step])
-          .fromPairs()
-          .value()
+        const stepLineToPickledStepMap = getStepLineToPickledStepMap(pickle)
         let isBeforeHook = true
         scenarioData.steps = testCase.steps.map(testStep => {
           isBeforeHook = isBeforeHook && !testStep.sourceLocation
           return this.getStepData({
             isBeforeHook,
-            stepLineToKeywordMapping,
-            stepLineToPickledStepMapping,
+            stepLineToKeywordMap,
+            stepLineToPickledStepMap,
             testStep
           })
         })
@@ -110,12 +110,11 @@ export default class JsonFormatter extends Formatter {
     }
   }
 
-  getScenarioData({ featureId, pickle, scenarioLineToDescriptionMapping }) {
-    const description = _.chain(pickle.locations)
-      .map(({ line }) => scenarioLineToDescriptionMapping[line])
-      .compact()
-      .first()
-      .value()
+  getScenarioData({ featureId, pickle, scenarioLineToDescriptionMap }) {
+    const description = getScenarioDescription({
+      pickle,
+      scenarioLineToDescriptionMap
+    })
     return {
       description,
       id: featureId + ';' + this.convertNameToId(pickle),
@@ -128,20 +127,16 @@ export default class JsonFormatter extends Formatter {
 
   getStepData({
     isBeforeHook,
-    stepLineToKeywordMapping,
-    stepLineToPickledStepMapping,
+    stepLineToKeywordMap,
+    stepLineToPickledStepMap,
     testStep
   }) {
     const data = {}
     if (testStep.sourceLocation) {
       const { line } = testStep.sourceLocation
-      const pickledStep = stepLineToPickledStepMapping[line]
+      const pickledStep = stepLineToPickledStepMap[line]
       data.arguments = this.formatStepArguments(pickledStep.arguments)
-      data.keyword = _.chain(pickledStep.locations)
-        .map(location => stepLineToKeywordMapping[location.line])
-        .compact()
-        .first()
-        .value()
+      data.keyword = getStepKeyword({ pickledStep, stepLineToKeywordMap })
       data.line = line
       data.name = pickledStep.text
     } else {

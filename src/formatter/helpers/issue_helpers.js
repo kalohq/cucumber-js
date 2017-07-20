@@ -7,6 +7,11 @@ import figures from 'figures'
 import Table from 'cli-table'
 import KeywordType, { getStepKeywordType } from '../../keyword_type'
 import { buildStepArgumentIterator } from '../../step_arguments'
+import { getStepLineToKeywordMap } from '../../gherkin_document_parser'
+import {
+  getStepLineToPickledStepMap,
+  getStepKeyword
+} from '../../pickle_parser'
 
 const CHARACTERS = {
   [Status.AMBIGUOUS]: figures.cross,
@@ -130,28 +135,16 @@ export function formatIssue({
     ' # ' +
     colorFns.location(scenarioLocation) +
     '\n'
-  const stepLineToKeywordMapping = _.chain(gherkinDocument.feature.children)
-    .map('steps')
-    .flatten()
-    .map(step => [step.location.line, step.keyword])
-    .fromPairs()
-    .value()
-  const stepLineToPickledStepMapping = _.chain(pickle.steps)
-    .map(step => [_.last(step.locations).line, step])
-    .fromPairs()
-    .value()
+  const stepLineToKeywordMap = getStepLineToKeywordMap(gherkinDocument)
+  const stepLineToPickledStepMap = getStepLineToPickledStepMap(pickle)
   let isBeforeHook = true
   let previousKeywordType = KeywordType.PRECONDITION
   _.each(testCase.steps, testStep => {
     isBeforeHook = isBeforeHook && !testStep.sourceLocation
     let keyword, keywordType, pickledStep
     if (testStep.sourceLocation) {
-      pickledStep = stepLineToPickledStepMapping[testStep.sourceLocation.line]
-      keyword = _.chain(pickledStep.locations)
-        .map(({ line }) => stepLineToKeywordMapping[line])
-        .compact()
-        .first()
-        .value()
+      pickledStep = stepLineToPickledStepMap[testStep.sourceLocation.line]
+      keyword = getStepKeyword({ pickledStep, stepLineToKeywordMap })
       keywordType = getStepKeywordType({
         keyword,
         language: gherkinDocument.feature.language,
