@@ -94,7 +94,7 @@ function getDefinitionLineAndUri(cwd) {
 }
 
 export function registerHandler(cwd, collection) {
-  return (eventName, options, code) => {
+  return util.deprecate((eventName, options, code) => {
     if (typeof options === 'function') {
       code = options
       options = {}
@@ -113,7 +113,7 @@ export function registerHandler(cwd, collection) {
       options
     )
     collection.push(listener)
-  }
+  }, 'registerHandler is deprecated and will be removed in the next major version. Use BeforeAll/AfterAll or open an issue at https://github.com/cucumber/cucumber-js/issues with your use case.')
 }
 
 export function addTransform(parameterTypeRegistry) {

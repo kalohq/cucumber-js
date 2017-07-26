@@ -4,6 +4,8 @@ import isGenerator from 'is-generator'
 import path from 'path'
 import TransformLookupBuilder from './parameter_type_registry_builder'
 import * as helpers from './helpers'
+import util from 'util'
+
 function build({ cwd, fns }) {
   const options = {
     afterFeaturesHookDefinitions: [],
@@ -43,9 +45,9 @@ function build({ cwd, fns }) {
     ),
     defineStep: helpers.defineStep(cwd, options.stepDefinitions),
     registerHandler: helpers.registerHandler(cwd, options.listeners),
-    registerListener(listener) {
+    registerListener: util.deprecate(listener => {
       options.listeners.push(listener)
-    },
+    }, 'registerListener is deprecated and will be removed in the next major version. If you are using this, please open an issue at https://github.com/cucumber/cucumber-js/issues with your use case.'),
     setDefaultTimeout(milliseconds) {
       options.defaultTimeout = milliseconds
     },
